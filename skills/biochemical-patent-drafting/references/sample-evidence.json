@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "upstream": {
+    "url": "https://github.com/zhoudebao6-art/patent-drafting-automation/releases/tag/v6.37",
+    "commit": "9e13d1e70146497b9c1f11a2f694ed2c586ded9c"
+  },
+  "samples": [
+    {
+      "id": "01",
+      "title": "匿名样本01",
+      "source_tables": 2,
+      "final_tables": 2,
+      "source_images": 7,
+      "final_images": 8,
+      "main_figure": 5
+    },
+    {
+      "id": "02",
+      "title": "匿名样本02",
+      "source_tables": 3,
+      "final_tables": 3,
+      "source_images": 6,
+      "final_images": 7,
+      "main_figure": 1
+    },
+    {
+      "id": "03",
+      "title": "匿名样本03",
+      "source_tables": 4,
+      "final_tables": 4,
+      "source_images": 7,
+      "final_images": 8,
+      "main_figure": 2
+    },
+    {
+      "id": "04",
+      "title": "匿名样本04",
+      "source_tables": 2,
+      "final_tables": 2,
+      "source_images": 5,
+      "final_images": 6,
+      "main_figure": 1
+    },
+    {
+      "id": "05",
+      "title": "匿名样本05",
+      "source_tables": 3,
+      "final_tables": 3,
+      "source_images": 7,
+      "final_images": 8,
+      "main_figure": 1
+    }
+  ],
+  "scope": "公开分发版仅保留五份学习样本的匿名编号及结构统计；原始题名、原件哈希、完整技术正文、实验数据和图片仅留维护工作区。匿名化不改变样本数量与格式统计，也不构成新案技术依据。"
+}

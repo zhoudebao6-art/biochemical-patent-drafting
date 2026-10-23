@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "page_background": "none",
+  "source_note": "Five anonymized human final samples share the geometry. Original titles and source hashes are retained only in the private maintenance workspace. DOC-to-DOCX conversion is recorded there and is not claimed byte-identical to the binary DOC.",
+  "sections": [
+    "abstract",
+    "abstract_figure",
+    "claims",
+    "description",
+    "figures"
+  ],
+  "page_twips": {
+    "width": 11906,
+    "height": 16838,
+    "top": 1418,
+    "right": 1134,
+    "bottom": 1134,
+    "left": 1418,
+    "header": 567,
+    "footer": 567
+  },
+  "body": {
+    "east_asia": "宋体",
+    "latin": "Times New Roman",
+    "size_pt": 12,
+    "line_pt": 24,
+    "before_pt": 5,
+    "after_pt": 0,
+    "first_line_chars": 2,
+    "scope": "abstract_and_claims"
+  },
+  "heading": {
+    "size_pt": 12,
+    "bold": true,
+    "line_multiple": 1.3
+  },
+  "title": {
+    "size_pt": 12,
+    "bold": true,
+    "alignment": "center"
+  },
+  "caption": {
+    "size_pt": 12,
+    "alignment": "center"
+  },
+  "evidence": "Anonymized sample counts and structural statistics are described in references/sample-evidence.json; full comparison evidence stays in the private maintenance workspace.",
+  "description_body": {
+    "east_asia": "宋体",
+    "latin": "Times New Roman",
+    "size_pt": 12,
+    "line_multiple": 1.3,
+    "before_pt": 5,
+    "after_pt": 0,
+    "first_line_chars": 2,
+    "bold": false,
+    "example_intro": "same paragraph as source example number; complete source sentence"
+  }
+}

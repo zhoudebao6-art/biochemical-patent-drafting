@@ -1,0 +1,74 @@
+# 提交前回执检查
+
+## v6.26 增量复查
+
+新批次冻结`review_reuse=verified_scope_v1`。首轮完整检查并集中汇总能确认的问题，写清已通过与未完成范围；后轮先用下方summary命令读取控制器差异摘要，不整读包含逐段哈希的内部计划。只复查修正项、改动、新增、关联内容、此前失败或未审范围，已有证据且未受影响的通过部分不重复检查。缺证据不能由没有finding推断通过。仍由独立review判断变更是否影响其他权项、技术方案、术语前置、公式解释、化学式、全部谱图/曲线及引用；受影响范围须从继承移入本轮检查，不仅看段落字节。
+
+```text
+python 本批skill-snapshot/scripts/incremental_review.py summary --plan prepared.review_reuse.path --plan-sha prepared.review_reuse.plan_sha256
+```
+
+在原decisions/receipt添加`review_coverage`，不另建台账：
+
+```json
+{
+  "schema_version": 1,
+  "plan_sha256": "prepared.review_reuse.plan_sha256",
+  "checks": {
+    "source_support": {"fresh": ["*"], "passed": ["*"], "inherited": [], "impact_review": "本轮实际判断及依据"}
+  },
+  "pages": [{"page": 1, "status": "passed", "mode": "fresh"}]
+}
+```
+
+`checks`列出source_support、antecedents、claims_alignment、formulas、figures五类；原回执六项checks保持不变，rendered_pages覆盖只由pages表达，不写第二份。scope使用计划的部件名及段号，不自造。fresh表示本轮实际检查，passed仅为fresh中的通过部分；inherited只填计划允许且本轮确认未受影响的已过范围。整类已实际检查可用fresh=`["*"]`；仅整类通过才用passed=`["*"]`，整类确实可继承才用inherited=`["*"]`。集合支持`{"all_except":["明确排除的scope"]}`，减少几百个已过段号的重复抄写，例如检查全类仅两处失败时，fresh用`["*"]`、passed明确排除失败及未审范围。补集同样是实际覆盖承诺，不能由finding自动填出。未完成项允许空覆盖，原checks写not_run或具体失败。
+
+页面仍从当前稿真实渲染生成。需要继承旧视觉结论时调用统一比对工具：
+
+```text
+python 本批skill-snapshot/scripts/incremental_review.py page-map --plan prepared.review_reuse.path --plan-sha prepared.review_reuse.plan_sha256 --render 当前render.json
+```
+
+工具只给候选，不生成passed。仅前轮真正看过且通过、当前图像相同且证据链有效的页可填mode=inherited；其余页实际查看后填fresh及真实status。当前全部页均须覆盖；未渲染则pages=[]且rendered_pages=not_run，不提前渲染已知待改稿。沿用当前render.evidence及当前稿SHA，不挪用旧render.json。缺少旧覆盖证据、来源/规则/工具变化或不明影响时，按计划扩大本轮检查；不增加另一次全检或修改者自签。旧冻结批次保持原契约。
+
+v6.19识别三池独立准备的合法pending到ready转换：原始reservation.json字节及哈希仍保持原样，只有prepared/handoff.json的独立文件身份、封存哈希和本attempt上下文均一致时，才允许准备状态与准备封存两个字段产生预期差异。其他字段仍逐项严格比较，未知字段、来源/身份/封存变化不放行。修复用于以后新建批次；已授权任务内的必要接续由总控按[工具修复接续](tool-fault-recovery.md)验证后执行，无须重复批准，旧冻结工具及旧失败记录不改写。
+
+仅 `execution_optimization=lean_execution_v24` 的新冻结批次使用。工具只装配客观字段、检查结构，不签发语义或视觉通过，不修改队列，也不替总控核验真实CLI最终回复。
+
+版本63draft先在原formula_registry完成公式正确性判断及有据修正；complete只代表写稿阶段完成，不能冒充最终验收或填写独立review的pass。影响公式正确性的缺口未解决时保留候选稿，返回needs_input及精确reason，其他案件继续；不新增draft checks.formulas，也不能在后续review中把初稿自检当已通过范围继承。
+
+在当前attempt中写 `decisions.json`，填写实际完成的 `verdict`、输出 `artifact` 绝对路径，以及复查实际执行或有效继承的 `checks`、实际问题 `findings`。通过复查时提供 `render.evidence` 的实际 `render.json` 绝对路径。需要的六项为 `source_support`、`antecedents`、`claims_alignment`、`formulas`、`figures`、`rendered_pages`；未执行写 `not_run`，有问题如实记录，不复制模板的passed。
+
+本生化派生版figures覆盖全部源图、谱图和曲线，核主图、身份、条件、图号、解释、位置和显示；不能将非流程图写为not_in_scope。review_only返回fix_required交独立revise，再新会话review。化学式/单位上下标及实验数据分别并入formulas/source_support，不新增阶段。
+
+```text
+python 本批skill-snapshot/scripts/worker_receipt.py --job 本attempt/cli-job.json --decisions 本attempt/decisions.json
+```
+
+工具从本attempt已绑定的job、reservation和dispatch取得身份，计算真实DOCX和render证据SHA。它不会猜测verdict、设置passed、关闭findings或把修改稿改为pass。只补缺失的客观字段；已填写的身份或SHA若矛盾则拒绝。可用 `--output 本attempt/receipt-candidate.json` 保存新候选文件，不能覆盖已有文件或写 `receipt.json`、`worker-final.json`。
+
+成功时把标准输出中的完整JSON原样作为最终回复。失败时在本worker原轮次内修正具体字段或真实产物再检查；不重新启动本案CLI，不重写已正确内容。最终CLI日志、会话、模型强度、来源、六项审查、最终页面及业务验收仍由原收稿门禁执行。
+
+普通初稿或修订使用 `complete`。review未修改且六项和全部当前页由本轮实查与有效继承完整覆盖并通过才用 `pass`；发现问题未改完用 `fix_required`；仅旧冻结review_fix_then_recheck下review已修改稿用 `revised` 并给出当前attempt的新DOCX和有真实 `location`、`correction_evidence` 的已关闭findings，之后交由新会话独立重验。来源不足用 `needs_input` 并给出具体reason；不能用回执工具解决技术证据缺口。
+
+收稿只在真实执行、来源和身份验证后，把明确的字段缺失、错误枚举、同案过期路径归属等 `CaseReceiptError` 隔离为本案失败，保存 `cli-rejection.json` 及原产物，不自动重试；其他案件继续补位。来源或身份变化、SHA矛盾、跨案路径、链接、未知执行错误和无法确认退出均继续停池或保留占槽。分类依赖明确异常类型，不按错误消息的关键词猜测。
+
+版本30行内公式候选仍在原findings中闭环。对带offset的候选必须逐项携带相同offset、end_offset、offset_projection及format_disposition=not_formula或format_already_correct，并保留原双SHA和精确来源/目标定位；只能说明误报或格式已正确，不能豁免真实错误。修改后使用新稿的inspection与SHA；组内缺逗号必须修复，不能以来源身份关闭。
+
+版本57的差异摘要增加relocated_scopes，按部件/旧起始段号/新起始段号/连续数量表达位移；覆盖回执始终使用当前段号。只有同部件同结构容器内唯一、相同XML且相对次序未变的内容可映射旧通过范围；跨单元格/文本框移动、重复歧义或真实调序保守重验。位移映射不是语义豁免，仍判断新增、删除或修改对定义、引用、权项、公式及图的关联影响。
+
+## 生化规则v2无空格
+
+source_support/formulas核无空格改写未改变术语、数值、单位、条件及运算；figures/rendered_pages实际查看图像/OLE文字、页眉页脚、表格、公式和图号。当前inspection的biochemical_spacing_evidence必须完整同SHA且hits为空；字段缺失、过期或存在空格不得pass，不能用closed finding豁免。未检查图中文字仍写not_run，不因机械零命中直接passed。
+
+## 生化规则v3表格与分析
+
+表头/单位/行列语义并入source_support，图片分析位于结果分析开头且完整并入figures，表格实际跨页及总结主语并入rendered_pages和正文语义复核。当前inspection的biochemical_table_evidence、biochemical_analysis_evidence均须完整、同SHA、issues为空；缺失或过期不能pass。删除技术总结标签保留正文，无主语补本发明；语义不能因机械零命中自动passed。详见[tables-analysis-summary](tables-analysis-summary.md)。
+
+## 生化规则v4标题与表题
+
+source_support核有益效果事实及各表题含义，claims_alignment核五主栏目与说明书总体方案，rendered_pages核普通标签/表题字重、表题与表头及首行数据同页。当前biochemical_presentation_evidence须同SHA完整且issues为空；和原六项一次核验，不用额外全检或新审查池。
+
+无底色检查并入rendered_pages：确认全稿页面无装饰底色，正文/表格/页眉页脚无底纹和高亮；机械biochemical_background_evidence必须完整、同SHA、issues为空。源科学图像不是任意删改对象，显示器或WPS护眼色不能代替文件证据。
+
+formulas项核上下标语义及原生格式：化学计量/电荷、单位幂次和负指数均与源一致；rendered_pages核显示。当前biochemical_native_scripts_evidence同SHA完整、issues为空；不得把普通数字猜成下标，也不能以特殊字形替代原生字符格式。

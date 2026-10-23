@@ -1,0 +1,162 @@
+{
+  "upstream": {
+    "url": "https://github.com/zhoudebao6-art/patent-drafting-automation/releases/tag/v6.37",
+    "commit": "9e13d1e70146497b9c1f11a2f694ed2c586ded9c"
+  },
+  "runtime_components": [
+    {
+      "file": "scripts/parallel_batch.py",
+      "upstream_sha256": "05ef0574d873a5860ebb995e23e2b3c978b982d4750309de4376abb78d730539",
+      "fork_sha256": "05ef0574d873a5860ebb995e23e2b3c978b982d4750309de4376abb78d730539",
+      "byte_identical": true
+    },
+    {
+      "file": "scripts/cli_pool.py",
+      "upstream_sha256": "68c0eba443847c1d76e7c7b69f4f3b6309219dcb42384545f52c7fc69b1dfdd2",
+      "fork_sha256": "b1398ee64986474be7f85b0616978f83734006308a6184920f85eb899d67d9d7",
+      "byte_identical": false
+    },
+    {
+      "file": "scripts/stage_pool_runner.py",
+      "upstream_sha256": "a3aef05554a0245b39329b690676857c5e39d98e631adc89df64be2949a7dc90",
+      "fork_sha256": "a3aef05554a0245b39329b690676857c5e39d98e631adc89df64be2949a7dc90",
+      "byte_identical": true
+    },
+    {
+      "file": "scripts/stage_bundle.py",
+      "upstream_sha256": "9ee25d8809cf5244305dd52d224c21c9e533f3f89ac26ff9413d9e886fdace92",
+      "fork_sha256": "8b5b33c7a3a7010812aaef62896abd4647aea92cbc3ecc4dd732b3d2b6d05d31",
+      "byte_identical": false
+    },
+    {
+      "file": "scripts/prepare_handoff.py",
+      "upstream_sha256": "9b2f29445a97d5c3cede34d0fe5915b62d7596e705e08ed8eabbe30b949ff487",
+      "fork_sha256": "0f81bc5d0b75b4eaeb0b55eb1ac1c599e66bf3da29981cde279daeff7652ab76",
+      "byte_identical": false
+    },
+    {
+      "file": "scripts/cli_evidence.py",
+      "upstream_sha256": "dc669d0ac60ff37f8d020b39ead89c966c5a287afe33c1da3bb8c5e40686661c",
+      "fork_sha256": "dc669d0ac60ff37f8d020b39ead89c966c5a287afe33c1da3bb8c5e40686661c",
+      "byte_identical": true
+    },
+    {
+      "file": "scripts/worker_receipt.py",
+      "upstream_sha256": "fb1841f97e48d4c8cf831cb1f206b578bf6a44caa67bef45ad2bd904f86d2746",
+      "fork_sha256": "fb1841f97e48d4c8cf831cb1f206b578bf6a44caa67bef45ad2bd904f86d2746",
+      "byte_identical": true
+    },
+    {
+      "file": "scripts/incremental_review.py",
+      "upstream_sha256": "bb79023405132d813a926b7f36ad50a373e88aab15558016938de9ba0fa63b25",
+      "fork_sha256": "bb79023405132d813a926b7f36ad50a373e88aab15558016938de9ba0fa63b25",
+      "byte_identical": true
+    },
+    {
+      "file": "scripts/independent_delivery.py",
+      "upstream_sha256": "3a355b9b7f24a8a951704264695d6d4e22e4b77881d5917bb57288c5fc3e8b8c",
+      "fork_sha256": "3a355b9b7f24a8a951704264695d6d4e22e4b77881d5917bb57288c5fc3e8b8c",
+      "byte_identical": true
+    },
+    {
+      "file": "scripts/flat_delivery.py",
+      "upstream_sha256": "ee223cc741378337e8443d8fdb4bbfbf511d6051891f33d4f9ff9a54f33193b8",
+      "fork_sha256": "ee223cc741378337e8443d8fdb4bbfbf511d6051891f33d4f9ff9a54f33193b8",
+      "byte_identical": true
+    },
+    {
+      "file": "scripts/render_docx_checked.py",
+      "upstream_sha256": "61de773685b4dcf765b2ee1b4ae4865b4f004e2f2c2e260a5e2f783d940d1322",
+      "fork_sha256": "61de773685b4dcf765b2ee1b4ae4865b4f004e2f2c2e260a5e2f783d940d1322",
+      "byte_identical": true
+    },
+    {
+      "file": "scripts/output_contract.py",
+      "upstream_sha256": "3e42c5ab3e7b6890f015ea0f0c176074c50d1dc39e2bb80c9a2ed8a1ee29873e",
+      "fork_sha256": "28efea82da2818e23cc515b1bc8158c0572406e5b32bb26e8225dc029a28b91b",
+      "byte_identical": false
+    },
+    {
+      "file": "scripts/inspect_docx.py",
+      "upstream_sha256": "84867d9e427dd126193e21dfe18273e9b371767f9c69fbb9cac2bce83ebab37b",
+      "fork_sha256": "88c4c4b8542d8f7f176586f18724e173ce6f0b13e3c5f001575012f834e87303",
+      "byte_identical": false
+    },
+    {
+      "file": "scripts/batch_tool.py",
+      "upstream_sha256": "d8ac43d5907bccbdc8809d63669ceba2b451d9d6904dd6ee5219a4f415ea7cc0",
+      "fork_sha256": "08c1ac7875fe09719c0a13d6264e99db58d1087653f6128ea401c73a4d30fb66",
+      "byte_identical": false
+    }
+  ],
+  "adaptations": [
+    "stage compiler routes biochemical rules/toolkit",
+    "legacy no-pipeline prompt disabled",
+    "inspection precheck delegated to biochemical module",
+    "output contract delegates biochemical pass gate",
+    "queue, process/session evidence, pools, recovery, incremental review, rendering and atomic delivery preserved",
+    "batch_tool.clean_path uses normalized lexical containment plus reparse checks to avoid a reproduced Windows atomic-replacement resolve race; parent traversal and links remain rejected",
+    "bio_author preserves standard media extraction and separates adjacent independent tables; forward defects and original failed artifacts retained in creation workspace",
+    "v1.0.1: user no-visible-space rule; display-copy normalization, complete hash-bound spacing extraction, final pass/delivery block; source, Word field codes, native math and all execution pools retained",
+    "v1.0.2: dedicated centered table/header layout with own repeated headers; source-bound figure analyses at beginning of results; remove technical-summary label and supply missing subject; hash-bound mechanical evidence at final pass/delivery; three-pool architecture preserved",
+    "v1.0.3: single source-bound benefit introduction, five main headings, explicit ordinary weight for auxiliary labels and captions, numbered descriptive caption per table with header/first-data pairing, current-hash presentation evidence; three-pool and incremental workflow preserved",
+    "v1.0.4: no page background (including white fill), Word shading or highlights; clean template and generated copies including style/numbering inheritance; hash-bound background evidence gates pass/delivery; scientific figures and three-pool workflow preserved",
+    "v1.0.5: source Unicode script inventory, ordinary characters with native Word sub/superscript, whole negative exponents, existing OMML/scripts and plain digits preserved; hash-bound native-script evidence gates pass/delivery; three-pool architecture retained",
+    "v1.0.6: Chinese semicolon at each figure-description list entry ending, preserving rich text and other scopes; generated trace and presentation pass/delivery checks; three-pool architecture retained",
+    "v1.1.0: complete source example introductions and role-specific line spacing; shared atomic display normalization and shared XML scans; remove unreachable soft-tech precheck; exclude unused soft-tech generator from new snapshots; compact reference routing and exact shared exceptions with explicit rule bindings; preserve three pools, immutable evidence, independent review and immediate delivery",
+    "v1.1.1: re-extract all 50 claims from five human finals; shared source-complete candidates, actual-object families, reference/dependency distinction and source-bound output checks; preserve all five attested dependency chains and paragraph structure. No attested two/three-independent sample is claimed; no new workflow layer.",
+    "v1.1.2: apply the 2026-10-22 correction to figure-description lists: preceding entries use Chinese semicolons, final or sole entry uses a Chinese full stop. Generation and inspection share actual-list position detection; rich text and other sections are preserved. No new workflow layer.",
+    "v1.1.3: separate technical refinement/inheritance from global noun-first-use wording; require source-bound declared dependency needs, validate actual full paths per alternative, reject missing or unexplained inherited restrictions, and keep wrong dependent-object heads as errors. Expose actual paths in centralized claims findings. No new workflow layer; semantic choice remains independent review.",
+    "v1.1.4: source-bound protection objects and candidate order, source-preserving natural claim paragraphs, single-paragraph dependent claims, numeric-unit token guard and bounded terminal transition. Reuse existing author/check modules and 29 rules; no new workflow layer or paragraph plan schema. Five real cases recovered 50 claims/72 paragraphs from deliberately malformed layout inputs."
+  ],
+  "biochemical_components": [
+    {
+      "file": "scripts/bio_author.py",
+      "sha256": "896f22ab665288137a26b6925d04cbce82f56c6af43d441e4f64e2459251b287"
+    },
+    {
+      "file": "scripts/bio_prepare.py",
+      "sha256": "8ec569b19e536ad2ccebf5f697d4404e89ec8d4721cf4c3efff9fdf2e1872492"
+    },
+    {
+      "file": "scripts/bio_check.py",
+      "sha256": "b6a4342de8b554d077778b259af313df1c7615725f6639b2b3da5558b7944167"
+    },
+    {
+      "file": "scripts/bio_claims.py",
+      "sha256": "929e3f4f7190bab5f3259ddd8833311a3bb08f3479bb4a6d23c86c9bb3648d7e"
+    },
+    {
+      "file": "scripts/bio_contract.py",
+      "sha256": "58ef42ce10a2b4727baf4ad26e50b783c564c0cf5351a8f5474a4ab2623eb732"
+    },
+    {
+      "file": "scripts/bio_inspection.py",
+      "sha256": "6eaf58edddb12513252c2ccf861c3d8e4e04f1012a10a161865e093a8ea85a44"
+    },
+    {
+      "file": "scripts/bio_layout.py",
+      "sha256": "343c4950c88ff2cdf5fee5fd9af986f0eafe06de7dbcd4c78764094c7e0116ed"
+    },
+    {
+      "file": "scripts/bio_presentation.py",
+      "sha256": "87f8ae6d0e9be2183a612e04609236c7ed658993fce053acf3a5d1cbf81d5b40"
+    },
+    {
+      "file": "scripts/bio_package.py",
+      "sha256": "8a06a4cbaff6b2da2050204b938f96976e45a73b077c18feefdb9815468debba"
+    },
+    {
+      "file": "scripts/bio_spacing.py",
+      "sha256": "9d9365d42103387ff918b94334574bc9141cebb85c450c1e8cab337b57bdd632"
+    },
+    {
+      "file": "scripts/bio_background.py",
+      "sha256": "bc5f07250cafeb2df6680c90c5515dd3b287d58a8e8d5d32aa13fa1731eb93d4"
+    },
+    {
+      "file": "scripts/bio_scripts.py",
+      "sha256": "15a171cf25f5dd67599fee892c005e4f41b266bcebf312573ccba7453fff29ee"
+    }
+  ]
+}

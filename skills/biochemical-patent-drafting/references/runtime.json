@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "python": "",
+  "renderer": "",
+  "libreoffice": "",
+  "libreoffice_sha256": "",
+  "poppler_dir": "",
+  "verified_version": "",
+  "verified_signer": "",
+  "purpose": "Public distribution: unconfigured. Discover and verify local dependencies, populate paths and identities, then run preflight and an actual sample render before processing cases.",
+  "font_files": {
+    "math": "",
+    "body": "",
+    "header": ""
+  },
+  "conversion_backend": "wps",
+  "wps_program": "",
+  "wps_program_sha256": "",
+  "wps_powershell": "",
+  "wps_powershell_sha256": "",
+  "wps_progid": "KWPS.Application",
+  "setup_required": true
+}

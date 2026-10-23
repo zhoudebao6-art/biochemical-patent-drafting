@@ -1,0 +1,4 @@
+interface:
+  display_name: "生化专利撰写自动化"
+  short_description: "基于项目书与人工终稿规范，自动撰写生化专利并逐案独立复查交付"
+  default_prompt: "请使用 $biochemical-patent-drafting 处理指定生化项目文件夹，按人工终稿格式撰写，独立复查修改后逐案交付。"
