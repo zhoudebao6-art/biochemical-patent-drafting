@@ -127,7 +127,7 @@ def normalize(plan,evidence,preview):
     def is_table(b):return rows.get(b.get('source_body_index'),{}).get('kind')=='tbl'
     def meaningful(b):
         row=rows.get(b.get('source_body_index'),{})
-        return bool(preview(b,evidence).strip() or is_table(b) or b.get('role')=='image' or row.get('relationships') or row.get('math') or re.search(r'<(?:w:(?:drawing|pict|object|fldChar)|m:oMath)\b',row.get('xml','')))
+        return bool(preview(b,evidence).strip() or is_table(b) or b.get('role')=='image' or row.get('relationships') or row.get('math') or row.get('has_content_object') or re.search(r'<(?:w:(?:drawing|pict|object|fldChar)|m:oMath)\b',row.get('xml','')))
     def next_nonempty(i):
         return next((j for j in range(i+1,len(blocks)) if meaningful(blocks[j])),None)
     out=[];number=0;group=None;group_ids=[];group_stop=None;known={}

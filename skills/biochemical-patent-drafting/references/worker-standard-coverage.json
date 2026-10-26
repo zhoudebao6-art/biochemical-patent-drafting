@@ -4,9 +4,9 @@
     "mapping-writing.md": "7b62c07819250aacb5b90fdbc31a6547ce83d0feebc85e5bed4b058a08e035c8",
     "chemistry-data.md": "e9b2cb39421a108db5f74090b1798baad270614c321e55c50a6588e6a3059311",
     "format.md": "e69cb5dc93c87f66b33715b3677757ceb54ba03ff48e0227d594ac70cb5883e8",
-    "plan-schema.md": "876a5c8e2c394accb2d287cf41b1655946f70aeffe667a6ec1fca4b1e8b40734",
+    "plan-schema.md": "3c98e21c245c3ec0b7ed83dc0d8e86bd66cfb80d361291d73b4824398b912a31",
     "worker-standard.md": "42fa3864b8315ac2c5cc57e65e269894800aa1076f6de1163eca4b3e7bec170a",
     "claims-patterns.md": "bba123d6b6fdc86f6cd5f84c57f49207c50be888d532098be46d409c42e423de"
   },
-  "reviewed_scope": "Rules v12: five-source full claim writing; source object/order/limitations and physical paragraph boundaries; source-bound inherited needs and prior presentation rules retained."
+  "reviewed_scope": "Rules v12: five-source full claim writing; source object/order/limitations and physical paragraph boundaries; source-bound inherited needs and prior presentation rules retained. Public edition retains anonymous reference evidence; hashes bind this public copy."
 }

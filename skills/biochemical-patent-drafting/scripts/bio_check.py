@@ -1,23 +1,27 @@
 """Mechanical preflight. A clean result is never semantic or visual acceptance."""
 from pathlib import Path
-import argparse, re, zipfile
+import argparse, hashlib, re, zipfile
+from io import BytesIO
 from docx import Document
 from lxml import etree as ET
 from bio_common import sha, read, write
 from bio_prepare import text
-from bio_package import scan_docx
+from bio_package import scan_package
 from bio_layout import table_evidence, analysis_evidence
 from bio_presentation import evidence as presentation_evidence
 
 def inspect(path,plan=None,evidence=None):
-    path=Path(path); d=Document(path); errors=[]; warnings=[]
-    scans=scan_docx(path)
+    path=Path(path); payload=path.read_bytes(); digest=hashlib.sha256(payload).hexdigest()
+    d=Document(BytesIO(payload)); errors=[]; warnings=[]
+    # Reuse parsed OPC parts; all evidence comes from this one immutable input.
+    roots={str(p.partname).lstrip('/'):p._element for p in d.part.package.parts if hasattr(p,'_element')}
+    with zipfile.ZipFile(BytesIO(payload)) as package:
+        if package.testzip(): errors.append('Damaged ZIP member')
+        scans=scan_package(package,digest,roots)
     spacing=scans["spacing"];background=scans["background"];scripts=scans["native_scripts"]
     if not scripts['complete'] or scripts['issues']:errors.append('Unicode script glyphs require native script formatting: '+str(scripts['issues']))
     if not background['complete'] or background['issues']:errors.append('Page fill/shading/highlight remains: '+str(background['issues']))
     if spacing['hits']:errors.append('Visible-content spaces/tabs remain: '+str(len(spacing['hits'])))
-    with zipfile.ZipFile(path) as z:
-        if z.testzip(): errors.append('Damaged ZIP member')
     alltext='\n'.join(text(n) for n in d.element.body)
     parts=[]; current=[]
     for n in d.element.body:
@@ -25,10 +29,10 @@ def inspect(path,plan=None,evidence=None):
         current.append(n)
         if n.xpath('./w:pPr/w:sectPr'): parts.append(current); current=[]
     if current: parts.append(current)
-    tables_layout=table_evidence(d.element,sha(path))
-    presentation=presentation_evidence(d.element,d.styles.element,sha(path))
+    tables_layout=table_evidence(d.element,digest)
+    presentation=presentation_evidence(d.element,d.styles.element,digest)
     description=parts[3] if len(parts)==5 else list(d.element.body)
-    analysis=analysis_evidence([{'p':i,'text':text(n),'body_direct':True,'biochemical_role':n.pPr.pStyle.val if n.pPr is not None and n.pPr.pStyle is not None else None} for i,n in enumerate(description) if ET.QName(n).localname=='p'],sha(path))
+    analysis=analysis_evidence([{'p':i,'text':text(n),'body_direct':True,'biochemical_role':n.pPr.pStyle.val if n.pPr is not None and n.pPr.pStyle is not None else None} for i,n in enumerate(description) if ET.QName(n).localname=='p'],digest)
     errors.extend('Table layout: '+str(i) for i in tables_layout['issues'])
     errors.extend('Analysis layout: '+str(i) for i in analysis['issues'])
     errors.extend('Presentation: '+str(i) for i in presentation['issues'])
@@ -65,7 +69,8 @@ def inspect(path,plan=None,evidence=None):
         if len(source_tables)!=len(tables): errors.append('Implementation table count differs from source')
         source_scripts=sum(len(r['scripts']) for r in evidence['body'])
         if source_scripts and not d.element.body.xpath('.//w:vertAlign | .//w:position'): errors.append('All source sub/superscript formatting lost')
-    r={'schema_version':1,'path':str(path.resolve()),'artifact_sha256':sha(path),'sections':len(d.sections),'claims':len(nums) if len(parts)==5 else 0,'tables':len(tables),'images':len(d.inline_shapes),'native_math':len(d.element.body.xpath('.//m:oMath')),'spacing':spacing,'table_layout':tables_layout,'analysis_layout':analysis,'presentation':presentation,'errors':errors,'warnings':warnings,'status':'mechanical_pass' if not errors else 'mechanical_fail','review':'not_semantically_or_visually_accepted'}
+    if sha(path)!=digest: raise ValueError('Document changed during biochemical preflight')
+    r={'schema_version':1,'path':str(path.resolve()),'artifact_sha256':digest,'sections':len(d.sections),'claims':len(nums) if len(parts)==5 else 0,'tables':len(tables),'images':len(d.inline_shapes),'native_math':len(d.element.body.xpath('.//m:oMath')),'spacing':spacing,'table_layout':tables_layout,'analysis_layout':analysis,'presentation':presentation,'errors':errors,'warnings':warnings,'status':'mechanical_pass' if not errors else 'mechanical_fail','review':'not_semantically_or_visually_accepted'}
     r['background']=background
     r['native_scripts']=scripts
     r['claim_structure']=claim_structure

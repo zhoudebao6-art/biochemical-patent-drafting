@@ -18,6 +18,8 @@ CORE = ('claims-patterns.md', 'mapping-writing.md', 'chemistry-data.md', 'format
 MATH = ('chemistry-data.md',)
 STAGES = ('draft', 'review', 'revise')
 LEAN = 'lean_execution_v24'
+# Maintenance-only upstream author and its exclusive helper are not worker tools.
+MAINTENANCE_ONLY_SCRIPTS = frozenset({'authoring_toolkit.py', 'math_fragments.py'})
 # Explicit controller routes only. Unknown/new/project rules stay with workers.
 CONTROLLER_RULES = frozenset({'UPDATE-01', 'UPDATE-02', 'BATCH-01', 'BATCH-02',
                               'BATCH-07', 'BATCH-09', 'BATCH-11', 'BATCH-12'})
@@ -51,7 +53,7 @@ def selected_files(skill):
     skill = Path(skill).resolve(strict=True)
     selected = [skill/'SKILL.md']
     selected += [p for p in (skill/'scripts').glob('*.py')
-                 if not p.name.startswith('test_') and p.name != 'authoring_toolkit.py']
+                 if not p.name.startswith('test_') and p.name not in MAINTENANCE_ONLY_SCRIPTS]
     # The COM helper is a runtime dependency, not an arbitrary script glob.
     wps_helper = skill/'scripts/wps_readonly_pdf.ps1'
     if wps_helper.is_file():

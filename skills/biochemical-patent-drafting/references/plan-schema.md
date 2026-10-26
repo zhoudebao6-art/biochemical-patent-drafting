@@ -1,6 +1,6 @@
 # 生化源绑定计划
 
-bio_prepare.py输入本案冻结DOCX，输出evidence.json/content.txt。body_index是document.xml/body直属元素从0起，包含表格，不是paragraphs索引或页码。候选只是导航，需模型核语义。
+bio_prepare.py输入本案冻结DOCX，输出evidence.json/content.txt。body_index是document.xml/body直属元素从0起，包含表格，不是paragraphs索引或页码。候选只是导航，需模型核语义。证据保存来源定位、数学和关系对象及has_content_object标记；完整段落/表格XML直接从已核哈希的原DOCX读取，不再在JSON内重复复制。旧证据中的xml字段继续兼容。
 
 plan顶层schema_version=1、source_sha256、title、claim_map、sections。claim_map每项number、parent(null或单个前项)、object、source_body_indices；从属项必须有dependency_reason，具体说明本项在哪些已有条件基础上进一步限定。编号连续、不固定10项；源段号必须包含同一候选全部续段。
 
@@ -26,7 +26,7 @@ role为body/heading/title/image/caption/table/table_caption/figure_analysis/resu
 
 实施例编号与源中的完整首句放在同一个body块中，直接引用完整源段，不用slice截成只有编号，也不把来源首句省掉后直接写S1。源编号与引导原为两个普通段时，plan可用引导段加源绑定prefix组合为同段；原数学/复杂对象不展平。生成端核源句，遗漏或截短时在本attempt修复计划。
 
-bio_author.py --evidence EVIDENCE --plan PLAN --out OUTPUT.docx生成草稿及.trace.json，记录源位置、切片、替换、新段、标题及claim_map，始终draft_not_accepted。未支持的复杂对象不能省略，做本attempt局部补丁并记录。输出不覆盖。完成后以本批inspect_docx.py生成上游兼容inspection缓存供prepared复用，另bio_check.py做生化机械检查。任何工具记录都不等于独立通过。
+bio_author.py --evidence EVIDENCE --plan PLAN --out OUTPUT.docx --check生成草稿及.trace.json，记录源位置、切片、替换、新段、标题及claim_map，并依次生成.preflight.json与同目录inspection-cache。明确机械失败即停止后续取证，保留稿件及失败结果。输出不覆盖，成功仍为draft_not_accepted。未支持的复杂对象不能省略，做本attempt局部补丁并记录，改稿后重新运行两项检查。任何工具记录都不等于独立通过。
 
 成稿按[无空格规范](no-spaces.md)输出；plan的title在冻结前核定无空格表达。技术段的有义英文/独立数字/运算分隔须先依源改写为无空格准确表达；raw来源、JSON语法和路径不清理。生成器仅去显示副本中的无义空格，不能借压缩改变含义。
 

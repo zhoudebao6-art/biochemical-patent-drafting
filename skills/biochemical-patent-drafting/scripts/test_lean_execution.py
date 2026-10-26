@@ -74,7 +74,7 @@ class LeanTests(unittest.TestCase):
         text,c=s.build_packet(root,rules,'draft')
         self.assertIn('FUTURE-99',c['included_rule_ids']);self.assertIn('BATCH-01',c['included_rule_ids'])
         self.assertIn(extra['instruction'],text)
-        path=root/'references/manual-format-and-wording.md';path.write_bytes(path.read_bytes()+b'changed')
+        path=root/'references/format.md';path.write_bytes(path.read_bytes()+b'changed')
         with self.assertRaisesRegex(ValueError,'coverage|reference changed'):s.build_packet(root,rules,'draft')
 
     def test_source_navigation_and_active_rules_reused_without_recompiling_or_zip_parse(self):

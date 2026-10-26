@@ -3,12 +3,13 @@ from pathlib import Path
 import json
 import inspect_docx as inspector
 from xml.etree.ElementTree import ParseError
+from lxml.etree import XMLSyntaxError
 from zipfile import BadZipFile
 import hashlib
 import uuid
 
 # Source container/XML errors should be queue refusals, not uncaught tracebacks.
-SOURCE_ERRORS = (BadZipFile, ParseError)
+SOURCE_ERRORS = (BadZipFile, ParseError, XMLSyntaxError)
 
 
 def save_new(path, data):

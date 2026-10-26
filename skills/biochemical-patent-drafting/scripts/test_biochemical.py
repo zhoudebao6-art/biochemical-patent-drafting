@@ -1,7 +1,8 @@
 """Executable domain regressions with isolated synthetic, non-experimental data."""
 from pathlib import Path
 from io import BytesIO
-import tempfile, unittest, zipfile, copy, json
+import tempfile, unittest, zipfile, copy, json, subprocess, sys
+from unittest.mock import patch
 from docx import Document
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
@@ -107,4 +108,75 @@ class BiochemicalBehaviorTests(unittest.TestCase):
         out=self.build();summary=inspect_docx.run_inspection(out,self.root/'inspection','draft',True,True);report=read(summary['inspection'])
         bad=copy.deepcopy(report);bad['biochemical_evidence']['wording_hits']=[{'word':'其特征在于'}]
         with self.assertRaises(batch_tool.BatchError):bio_contract.check(bad,self.e['title_candidate'])
+
+    def test_compact_evidence_preserves_objects_without_full_paragraph_xml(self):
+        d=Document(self.source)
+        tags=('w:drawing','w:pict','w:object','w:fldChar','w:fldSimple','w:sym','w:footnoteReference','w:endnoteReference')
+        for tag in tags:d.add_paragraph().add_run()._r.append(OxmlElement(tag))
+        path=self.root/'objects.docx';d.save(path)
+        evidence=prepare(path,self.root/'objects-evidence')
+        self.assertTrue(all(r['has_content_object'] for r in evidence['body'][-len(tags):]))
+        self.assertTrue(all('xml' not in r for r in evidence['body']))
+        self.assertTrue(any(r['math'] for r in evidence['body']))
+        self.assertTrue(any(r['relationships'] for r in evidence['body']))
+        self.assertTrue(all(r['locator'] for r in evidence['body']))
+
+    def test_old_full_xml_and_compact_evidence_generate_identical_document_parts(self):
+        legacy=copy.deepcopy(self.e);src=Document(self.source)
+        for row in legacy['body']:
+            row.pop('has_content_object',None)
+            row['xml']=ET.tostring(src.element.body[row['body_index']],encoding='unicode')
+        write(self.root/'legacy.json',legacy);write(self.root/'plan.json',self.plan())
+        compact=self.root/'compact.docx';old=self.root/'legacy.docx'
+        build(self.root/'evidence/evidence.json',self.root/'plan.json',compact)
+        build(self.root/'legacy.json',self.root/'plan.json',old)
+        with zipfile.ZipFile(compact) as a,zipfile.ZipFile(old) as b:
+            for name in a.namelist():
+                if name.startswith('word/') and name.endswith('.xml'):
+                    self.assertEqual(a.read(name),b.read(name),name)
+        # Imported media use fresh filenames; bind image bytes by the actual rId.
+        def image_links(path):
+            return {key:rel.target_part.blob for key,rel in Document(path).part.rels.items() if rel.reltype.endswith('/image')}
+        self.assertEqual(image_links(compact),image_links(old))
+
+    def test_compact_and_legacy_object_rows_cannot_be_dropped_as_blank_spacing(self):
+        from bio_presentation import normalize
+        plan={'sections':{'description':[{'text':'表1样品检测值','role':'table_caption','source_body_indices':[1]},{'source_body_index':0},{'source_body_index':1}]}}
+        for object_fields in ({'has_content_object':True},{'xml':'<w:pict/>'}):
+            evidence={'body':[dict(body_index=0,kind='p',text='',**object_fields),{'body_index':1,'kind':'tbl','text':''}]}
+            preview=lambda b,e:b.get('text',e['body'][b['source_body_index']]['text'] if 'source_body_index' in b else '')
+            with self.subTest(object_fields=object_fields),self.assertRaisesRegex(ValueError,'directly precede'):
+                normalize(copy.deepcopy(plan),evidence,preview)
+
+    def test_preflight_rejects_file_changed_during_snapshot_inspection(self):
+        import bio_check
+        out=self.build();original=bio_check.table_evidence
+        def mutate(*args,**kwargs):
+            out.write_bytes(out.read_bytes()+b'changed-during-inspection')
+            return original(*args,**kwargs)
+        with patch.object(bio_check,'table_evidence',side_effect=mutate):
+            with self.assertRaisesRegex(ValueError,'changed during biochemical preflight'):inspect(out,self.plan(),self.e)
+
+    def test_checked_cli_writes_reusable_inspection_without_accepting_draft(self):
+        write(self.root/'plan.json',self.plan());out=self.root/'checked.docx'
+        script=Path(__file__).with_name('bio_author.py')
+        completed=subprocess.run([sys.executable,'-X','utf8',str(script),'--evidence',str(self.root/'evidence/evidence.json'),'--plan',str(self.root/'plan.json'),'--out',str(out),'--check'],capture_output=True,text=True,encoding='utf-8')
+        self.assertEqual(completed.returncode,0,completed.stderr)
+        result=json.loads(completed.stdout);self.assertEqual(result['status'],'draft_not_accepted')
+        self.assertEqual(read(result['preflight'])['artifact_sha256'],sha(out))
+        from prepare_handoff import read_existing_inspection
+        with patch.object(inspect_docx,'inspect',side_effect=AssertionError('Must reuse writer cache')):
+            reused=read_existing_inspection(out,out.parent/'inspection-cache','draft')
+        self.assertIsNotNone(reused)
+        self.assertEqual(reused['inspection'],result['inspection']['inspection'])
+
+    def test_checked_failure_keeps_candidate_and_stops_before_full_inspection(self):
+        from bio_author import check_generated
+        out=self.build();d=Document(out);d.add_paragraph('TODO');d.save(out)
+        with patch.object(inspect_docx,'run_inspection',side_effect=AssertionError('Do not inspect known failure')):
+            with self.assertRaisesRegex(ValueError,'failed mechanical preflight'):
+                check_generated(out,self.root/'evidence/evidence.json',self.root/'plan.json')
+        self.assertTrue(out.is_file());report=read(out.with_suffix('.preflight.json'))
+        self.assertEqual(report['status'],'mechanical_fail')
+        self.assertIn('Unfilled placeholder',report['errors'])
 if __name__=='__main__':unittest.main()

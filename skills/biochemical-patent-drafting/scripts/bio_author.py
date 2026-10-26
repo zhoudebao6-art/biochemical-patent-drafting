@@ -235,6 +235,22 @@ def build(evidence_path,plan_path,output):
         with output.open('xb') as stream:stream.write(pending.read_bytes())
     write(output.with_suffix('.trace.json'),{'schema_version':1,'artifact_sha256':sha(output),'source_sha256':e['source']['sha256'],'plan_sha256':sha(plan_path),'plan_normalizations':plan_changes,'claim_layout_normalizations':claim_layout_changes,'title':plan['title'],'claim_map':claims,'claim_validation':claim_validation,'blocks':trace,'spacing':spacing,'background':background,'native_scripts':scripts,'figure_description_endings':figure_endings,'status':'draft_not_accepted'})
     return output
+def check_generated(output,evidence_path,plan_path):
+    """Run the existing checks once and publish the writer's reusable cache."""
+    from bio_check import inspect
+    import inspect_docx
+    output=Path(output); preflight=output.with_suffix('.preflight.json')
+    report=inspect(output,read(plan_path),read(evidence_path));write(preflight,report)
+    if report['errors']:
+        raise ValueError('Generated draft failed mechanical preflight; see '+str(preflight))
+    inspection=inspect_docx.run_inspection(output,output.parent/'inspection-cache','draft',True,True)
+    if sha(output)!=report['artifact_sha256']:
+        raise ValueError('Generated draft changed between mechanical checks')
+    return {'status':'draft_not_accepted','artifact':str(output.resolve()),'preflight':str(preflight.resolve()),'inspection':inspection}
+
 def main():
-    p=argparse.ArgumentParser(); p.add_argument('--evidence',required=True); p.add_argument('--plan',required=True); p.add_argument('--out',required=True); a=p.parse_args(); print(build(a.evidence,a.plan,a.out))
+    p=argparse.ArgumentParser(); p.add_argument('--evidence',required=True); p.add_argument('--plan',required=True); p.add_argument('--out',required=True)
+    p.add_argument('--check',action='store_true',help='Run mechanical preflight and create the normal inspection-cache; independent review is still required')
+    a=p.parse_args();output=build(a.evidence,a.plan,a.out)
+    print(__import__('json').dumps(check_generated(output,a.evidence,a.plan),ensure_ascii=False) if a.check else output)
 if __name__=='__main__':main()

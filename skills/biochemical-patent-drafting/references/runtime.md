@@ -1,39 +1,29 @@
 # DOCX运行环境与页面验收
 
-公开分享包的runtime.json是待配置模板：路径、程序哈希、版本和字体位置均为空。安装技能不等于运行环境就绪。新机先通过依赖加载器取得实际Python及文档工具，核验python-docx、lxml、Pillow、pypdf、pdf2image、Poppler和可用WPS（或LibreOffice及documents渲染器），探测真实文件、字体和程序身份并填入runtime.json；随后运行preflight和小样实际渲染。不要复制别人的绝对路径或旧机器验证结论。
+公开分享包保留匿名样本结构统计及已清洗的五分区模板；不含原始题名、原件哈希、技术项目书、人工终稿、实验数据或图片。runtime.json保持空配置，必须在新电脑探测并验证Python、文档渲染器、WPS或LibreOffice、Poppler和字体后填写；安装技能不等于环境就绪。未配置时预检会拒绝运行。
 
-本技能以当前机器经过验证的转换后端生成同一DOCX的PDF和逐页PNG。v6.25提供正式WPS只读兼容后端，适合本机WPS交付及已发现的LibreOffice数学字形失真；缺省配置仍采用原LibreOffice路径，不能凭后端名称宣布显示正确。新机器只有完成程序身份核验和代表样稿实测后才启用WPS，已有冻结批次保持原配置。没有修改系统PATH、共享Office设置或文档插件文件。
+每批一次核验本机[运行配置](runtime.json)。先由依赖加载器取得真实Python与文档工具，检查python-docx、lxml、Pillow、pypdf、pdf2image和Poppler。配置中的路径、程序哈希、字体文件及后端身份属于当前机器；换机或升级后重新探测、核验并用小样实测，不能复制旧机器路径或凭程序名称认定成功。分享包的空白配置须完成设置才能运行。
 
-配置保存在[runtime.json](runtime.json)：Python、原LibreOffice工具及Poppler路径、字体身份；`conversion_backend=wps`时另设`wps_program`、`wps_program_sha256`、匹配位数的`wps_powershell`及`wps_powershell_sha256`，可选`wps_progid`默认KWPS.Application。WPS helper随技能冻结，不能由worker随意指定；实际COM宿主程序、转换工具、字体及选项均绑定证据。该配置是当前机器的路径信息，不是便携包自带二进制。换机器或软件升级后先调用依赖加载器，探测安装路径和签名，更新此配置再实测；不能凭旧路径或可执行文件名猜成功。
+|转换后端|需核实的配置|
+|---|---|
+|WPS|conversion_backend=wps；wps_program及其SHA；匹配位数的wps_powershell及其SHA；wps_progid缺省KWPS.Application|
+|LibreOffice|conversion_backend=libreoffice；libreoffice及其SHA；官方documents渲染器renderer|
+|共同依赖|python、poppler_dir、font_files中实际数学/正文/标题字体文件；不改变系统PATH或共享Office设置|
 
-## 执行
-
-使用依赖加载器返回的文档Python运行：
+使用已配置的文档Python执行：
 
 ```text
 python scripts/render_docx_checked.py --preflight
-python scripts/render_docx_checked.py 当前稿.docx --output-dir 本案/render-r1 --reuse --compact
-python scripts/render_docx_checked.py 当前稿.docx --output-dir 本案/render-r1 --verify --compact
+python scripts/render_docx_checked.py 当前稿.docx --output-dir 本attempt/render-r1 --reuse --compact
+python scripts/render_docx_checked.py 当前稿.docx --output-dir 本attempt/render-r1 --verify --compact
 ```
 
-先预检再派发本批文稿任务，首次配置或环境改变时用小样实际渲染。预检仅证明依赖可找到；实际转换并打开每一页才证明页面可验收。正常批次中，draft和revise worker完成稿件与结构预检；review先完成内容核查，内容可通过时再在当前review目录渲染最终版本，或复用同一当前稿写稿attempt内的有效页面。有明确内容错误时先修改，不提前渲染待改稿。review验证`render.json`对应当前稿件SHA256，逐页打开全部PNG，单独记录视觉结论。
+预检只证明依赖可用；首次配置或环境变化必须实际渲染并查看小样。普通批次先核内容，有明确待改项先修改；内容可通过时由review渲染当前稿，或复用当前作者目录下的有效同稿证据。`--reuse`仅在输入路径及字节、工具/配置/字体/DPI指纹和全部产物一致时生效。改稿使用新渲染目录，不覆盖旧证据；检查器成功不代表语义或页面通过。
 
-LibreOffice后端只对子进程设置已验证工具PATH，官方脚本创建唯一临时用户配置。WPS后端跨批次串行导出PDF，模型撰写及其他阶段继续并行；打开本次独立临时副本且只读，仅关闭本次Document，不更改Visible、DisplayAlerts等共享设置，不退出WPS或终止共享Office进程。超时保留失败证据，只处理本次创建的helper，不按进程名全局终止。新版本渲染使用新输出目录，失败不覆盖之前的页面或证据；--reuse仅在同一路径稿件、字节、工具/配置/DPI指纹及全部产物核验相同时复用，--compact只返回状态、页数和证据路径。
+render.json绑定当前DOCX的SHA、实际转换程序、PDF、连续page-N.png及各自哈希；PDF页数须等于PNG数量。生成状态为rendered_pending_visual_review。review须验证这些身份并实看全部当前页，或按冻结增量复查规则继承已实看的同图页面；未查看的页面不能签发通过。标题边框、表格跨页、公式字形、正文分页等以真实页面为准，不用HTML或截图拼接替代Word渲染。
 
-`render.json`记录输入、渲染器、原生程序及产物哈希，PDF页数必须等于连续编号PNG数量。生成成功状态是`rendered_pending_visual_review`，不是通过复查。改稿后旧渲染证据会被拒绝；必须重新渲染并由Sol/xhigh再验。
+WPS导出跨批次串行，模型撰写等阶段可继续并行。仅打开本次唯一临时副本且只读，仅关闭本次Document；不更改Visible/DisplayAlerts，不退出或按名称终止共享WPS/Office进程。LibreOffice仅对子进程设置已验证工具PATH，并使用独立临时用户配置。后端失败时保留明确失败状态，不静默切换或降低模型强度。
 
-本次实际排版自检发现Word的Title样式可能带继承的蓝色下边框。文字和XML预检通过不代表标题、公式、图或分页已通过；视觉发现问题仍由Sol/xhigh修改，不能为了省略修改流程直接标记pass。
+发现缺字、问号、粗斜体或OMML异常，先核源结构与同一哈希DOCX的实际显示，区分稿件错误和转换器失真；不能为迁就渲染而改公式含义。需要兼容后端时，先核其程序身份和配置再重新生成同稿证据，不能借用另一稿或旧哈希的页面。
 
-## 数学字形兼容性
-
-2026-10-14历史同稿测试及后续批次发现LibreOffice可能忽略OMML正体/粗体或缺显特殊数学字符。v6.25正式包装器通过显式配置提供WPS转换，不再要求worker逐案编写COM、另造兼容证据或修改批次收稿代码。发现斜体替换、粗体丢失、问号/方框或运算符丢失时，先对照DOCX源树，区分稿件错误和渲染器失真，保留失败页面及日志；不能改公式含义去迎合转换器。
-
-兼容复核须使用可用且经过验证的Word/WPS对**同一哈希DOCX**转换或查看，正式WPS后端沿用标准`render.json`、连续`page-N.png`和同一六项收稿契约，记录真实后端、版本/程序哈希、输入与PDF/PNG哈希并逐页验收；不复用另一稿的页面。已选WPS后端失败时报告具体失败，不悄悄降级LO或把转换成功当视觉通过。自动化Office时使用唯一只读副本和独立输出目录，只关闭本次打开的文档，不改变共享应用设置、不退出或终止用户实例。缺少可用兼容工具时保留未通过状态，不能用LO的失真结果签发通过。整页及公式区域检查仍由Sol/xhigh执行；结构诊断通过不能替代实际字形。
-
-## 不可用时
-
-日志保存在本次输出目录：统一`render.json`，LO的`renderer.log`，WPS的`converter.stdout.txt`、`converter.stderr.txt`、`converter-result.json`及`rasterizer.log`。报告缺失路径、身份变化或真实转换错误。WPS超时只终止本次helper，可能留下本次只读副本文档；应先依据输出目录中的唯一副本路径检查并恢复本次转换，不能反复启动新转换、退出共享WPS或把失败当成通过。保留稿件，不自动降低模型强度，不把重绘HTML、截图拼接或单独流程图当作最终Word页面，不宣称视觉验收完成。环境修复后的恢复流程见[批处理流程](batch-workflow.md)。
-
-v5.1运行配置已随当前文档插件升级到26.1013.11914，并使用页脚五分区样例实际验证。每批检查依赖一次；依赖更新后重新实测。Word字节未改变时，审查worker先验证render.json及全部产物后复用已有页面；修改后必须新目录重新渲染。各项目及attempt的渲染目录分开，禁止多个任务共用输出文件名或目录。
-
-v5.0的页面缓存指纹加入配置中font_files指向的实际字体文件内容，以及Windows字体替代配置。本机声明Cambria、宋体和黑体文件；字体更新会使旧缓存失效，配置字体缺失或路径非绝对路径时明确失败。换机器需重新探测这些路径。字体哈希只证明环境一致，不证明字形、公式或页面显示正确，仍须实际查看最终页面。
+失败日志保留在本次输出目录：render.json、renderer.log，或WPS的converter.stdout.txt、converter.stderr.txt、converter-result.json及rasterizer.log。超时只处理本次创建的helper，先按唯一副本路径检查可能遗留的只读文档，不反复启动转换或终止共享应用。保留未通过稿件，按[恢复规范](tool-fault-recovery.md)修复后继续。

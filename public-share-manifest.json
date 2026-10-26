@@ -1,12 +1,29 @@
 {
-  "version": "1.1.4",
+  "version": "1.2.0",
   "edition": "public-share",
-  "date": "2026-10-23",
+  "date": "2026-10-26",
   "file_count": 140,
-  "archive": "biochemical-patent-drafting-v1.1.4.zip",
-  "archive_sha256": "cc710e23ecddc8e1dcd25616e2d6f4c9e4c8caee4d43c3e6ffa30cf32ea26057",
-  "source_release_zip_sha256": "5e7f8599825dc5229bada4832569e84f2667edd6cca4b3a96f052955a7cdd46a",
-  "scripts_rules_entrypoint_unchanged": true,
+  "archive": "biochemical-patent-drafting-v1.2.0.zip",
+  "archive_sha256": "babb13a8379e694d42ad3124f514bc163ab6235cc5f0d5730456a8cdbb1c0801",
+  "source_release_zip_sha256": "19fa563e608fa9783309b19643f0f33038c9cc10dd4712d0d5132c6df88c1f2d",
+  "source_manifest_sha256": "f2afc77d6a21b11a1a16cf0c2a5a80f6385b40ef566d61ea1f6a827c57a95531",
+  "synced_candidate_changes": [
+    "README.md",
+    "references/architecture-provenance.json",
+    "references/authoring-toolkit.md",
+    "references/plan-schema.md",
+    "references/runtime.md",
+    "references/worker-standard-coverage.json",
+    "scripts/bio_author.py",
+    "scripts/bio_check.py",
+    "scripts/bio_prepare.py",
+    "scripts/bio_presentation.py",
+    "scripts/prepare_handoff.py",
+    "scripts/stage_bundle.py",
+    "scripts/test_biochemical.py",
+    "scripts/test_lean_execution.py",
+    "scripts/test_stage_bundle.py"
+  ],
   "public_edits": [
     "assets/format-profile.json",
     "assets/patent-template.docx",
@@ -19,20 +36,64 @@
     "references/sample-evidence.json",
     "references/worker-standard-coverage.json"
   ],
-  "template_word_parts_unchanged": true,
+  "protected_public_materials_unchanged": true,
+  "scripts_rules_entrypoint_match_local_release": true,
   "new_machine_setup_required": true,
+  "metrics": {
+    "cases": 5,
+    "claims": 50,
+    "claim_paragraphs": 72,
+    "evidence_bytes_before": 2378076,
+    "evidence_bytes_after": 479388,
+    "preflight_reads_before": 9,
+    "preflight_reads_after": 2,
+    "author_check_commands_before": 3,
+    "author_check_commands_after": 1,
+    "snapshot_files_before": 76,
+    "snapshot_files_after": 75
+  },
   "checks": {
-    "public_targeted_tests": 11,
-    "historical_source_tests": 99,
-    "template_pages_rendered_and_viewed": 5,
-    "package_crc_and_byte_identity": "passed",
-    "source_and_local_install_unchanged": true,
+    "main_regression_tests": 245,
+    "main_regression_groups": [
+      100,
+      101,
+      44
+    ],
+    "public_targeted_tests": 17,
+    "independent_repeated_tests_added_to_main_total": false,
+    "zip_crc_and_all_140_file_hashes": "passed",
     "original_sample_identity_removed": true,
-    "unconfigured_runtime_rejected": true,
+    "private_paths_removed": true,
+    "public_runtime_unconfigured_and_rejected": true,
+    "runtime_refusal": "Runtime paths must be absolute",
     "active_rules": 29,
-    "rule_and_stage_coverage": "passed"
+    "stage_coverage": {
+      "draft": {
+        "characters": 9444,
+        "active_rule_count": 29
+      },
+      "review": {
+        "characters": 9628,
+        "active_rule_count": 29
+      },
+      "revise": {
+        "characters": 9399,
+        "active_rule_count": 29
+      }
+    },
+    "template_bytes_unchanged_from_sanitized_public_v114": true,
+    "template_rerendered_in_this_release": false,
+    "production_semantic_or_page_acceptance": false
   },
   "files": [
+    {
+      "path": "README.md",
+      "sha256": "7bbeba6daf3f4c9bce07dbc988f53d3d9f333b1aba01c7dc10273d211c888a6c"
+    },
+    {
+      "path": "SKILL.md",
+      "sha256": "1f9ce5282836cb612172da8b7601d53066262b1523c63d48a3a028a3788b7ce6"
+    },
     {
       "path": "agents/openai.yaml",
       "sha256": "6cadd44cf82fae86cd3c682fbac63a682e389f2445a98a0737fb1a396bac9970"
@@ -46,16 +107,12 @@
       "sha256": "b860ff3505883fe0894377308449e52d8404877ea053542e577098867f629a3f"
     },
     {
-      "path": "README.md",
-      "sha256": "a1c0c1155b2b9586cec96cd88987f9ee9befaee450d41961c1a1bc1f02d38bbb"
-    },
-    {
       "path": "references/architecture-provenance.json",
-      "sha256": "81f37060866c3856b314e2366fe79ed93cd22b351c7dac2a92b0f36899771062"
+      "sha256": "620c511384f7c271feec1e308d2551e4510645de31a17644d518f0f6bf8737e9"
     },
     {
       "path": "references/authoring-toolkit.md",
-      "sha256": "fa47a8e9bdb4c5f055333c9b1a0a96ed0fcf80cb2bfbf4a5c30c145a0c693650"
+      "sha256": "a36b07b4e18ac80a931ea4b7642060b93947951c07e0f4766b97afecbdd19453"
     },
     {
       "path": "references/background-user-requirement.txt",
@@ -127,7 +184,7 @@
     },
     {
       "path": "references/plan-schema.md",
-      "sha256": "876a5c8e2c394accb2d287cf41b1655946f70aeffe667a6ec1fca4b1e8b40734"
+      "sha256": "3c98e21c245c3ec0b7ed83dc0d8e86bd66cfb80d361291d73b4824398b912a31"
     },
     {
       "path": "references/presentation-user-requirement.txt",
@@ -147,7 +204,7 @@
     },
     {
       "path": "references/runtime.md",
-      "sha256": "5c0a1c5242af865a73c5940266697468c12b149f4b01344a01df418f72947ae1"
+      "sha256": "151946d5177d9353c492a44177c62afa633a7ea42e2ce5af78a8f65caad273de"
     },
     {
       "path": "references/sample-evidence.json",
@@ -175,7 +232,7 @@
     },
     {
       "path": "references/worker-standard-coverage.json",
-      "sha256": "98b9fe8b49fc032b0b3db401fdd4622fad9a82bcb5b5792d3be9401b70dabe36"
+      "sha256": "8f025f87720d86bd64f1923f29d27dd02961ba0739bec154706f98f8c46c43c3"
     },
     {
       "path": "references/worker-standard.md",
@@ -195,7 +252,7 @@
     },
     {
       "path": "scripts/bio_author.py",
-      "sha256": "896f22ab665288137a26b6925d04cbce82f56c6af43d441e4f64e2459251b287"
+      "sha256": "00d94b3ae9c3052e3e12cac2580895913614d24fbedf0d111e2ef82c289cf58e"
     },
     {
       "path": "scripts/bio_background.py",
@@ -203,7 +260,7 @@
     },
     {
       "path": "scripts/bio_check.py",
-      "sha256": "b6a4342de8b554d077778b259af313df1c7615725f6639b2b3da5558b7944167"
+      "sha256": "43f0003e925787217ea70c11fcabd6d818c48f431baa0efba79f7d9e3e1d14eb"
     },
     {
       "path": "scripts/bio_claims.py",
@@ -231,11 +288,11 @@
     },
     {
       "path": "scripts/bio_prepare.py",
-      "sha256": "8ec569b19e536ad2ccebf5f697d4404e89ec8d4721cf4c3efff9fdf2e1872492"
+      "sha256": "c42e69d0abc39a4bcf7e9c8dad835cf72e87ddbbe4a8f4493901943cf4461e55"
     },
     {
       "path": "scripts/bio_presentation.py",
-      "sha256": "87f8ae6d0e9be2183a612e04609236c7ed658993fce053acf3a5d1cbf81d5b40"
+      "sha256": "fb41b65de113650bf00b9e3322b0b49a630536a7534ca4183f4d0d5076f8dee9"
     },
     {
       "path": "scripts/bio_scripts.py",
@@ -307,7 +364,7 @@
     },
     {
       "path": "scripts/prepare_handoff.py",
-      "sha256": "0f81bc5d0b75b4eaeb0b55eb1ac1c599e66bf3da29981cde279daeff7652ab76"
+      "sha256": "e674b9a69a0a609ea5e00a214ac047dafdfd030d93d5ed8e8a544bb98de7ffbb"
     },
     {
       "path": "scripts/recover_cli_batch.py",
@@ -327,7 +384,7 @@
     },
     {
       "path": "scripts/stage_bundle.py",
-      "sha256": "8b5b33c7a3a7010812aaef62896abd4647aea92cbc3ecc4dd732b3d2b6d05d31"
+      "sha256": "7b578eb950230737708870fa8ab347c6bede36ea381cd0a6d6570ec33e60a258"
     },
     {
       "path": "scripts/stage_pool_runner.py",
@@ -391,7 +448,7 @@
     },
     {
       "path": "scripts/test_biochemical.py",
-      "sha256": "8dd5aa138a80b579890ff93684bbcacab6621675047594caa76b786150bfc33b"
+      "sha256": "cda7da5d00bf7402840a399dc38ea6bb137eb4658fdeee45c99243786b84607b"
     },
     {
       "path": "scripts/test_claim_wording.py",
@@ -471,7 +528,7 @@
     },
     {
       "path": "scripts/test_lean_execution.py",
-      "sha256": "eaf0a615649ff2f40229d17ff3b0b388ff0de9db0ac1a45f238d94670501e0c4"
+      "sha256": "11ae6c1d24cfb0a4c44dc83e4de1313910d5f8467854280922f4472c68c0c561"
     },
     {
       "path": "scripts/test_math_details.py",
@@ -543,7 +600,7 @@
     },
     {
       "path": "scripts/test_stage_bundle.py",
-      "sha256": "13294138bbda7d6b0f5b2b107ff4d66f40ca096f6a458dc22ce2e0169069dc17"
+      "sha256": "8f564dc324520a4a1b289610ff731848851d578901c31b47c6866723c2e30e9b"
     },
     {
       "path": "scripts/test_style_evidence.py",
@@ -588,10 +645,6 @@
     {
       "path": "scripts/wps_render_backend.py",
       "sha256": "54165ccb600ea07f51ea7924ac900a72b33529919c97eac4ccb70614cafbf600"
-    },
-    {
-      "path": "SKILL.md",
-      "sha256": "1f9ce5282836cb612172da8b7601d53066262b1523c63d48a3a028a3788b7ce6"
     }
   ]
 }

@@ -26,8 +26,10 @@ def prepare(source, out, soffice=None):
         if kind=='sectPr': continue
         t=text(node); heading=t.strip().rstrip('：:')
         if heading in HEADINGS: section=heading
-        xml=ET.tostring(node,encoding='unicode')
-        row={'body_index':i,'locator':f'word/document.xml/body/*[{i+1}]','kind':kind,'text':t,'section':section,'xml':xml,'math':node.xpath('.//m:oMath'),'relationships':[]}
+        # The source locator is authoritative. Do not duplicate every full
+        # paragraph/table XML in JSON merely to decide whether it is blank.
+        has_object=bool(node.xpath('.//w:drawing | .//w:pict | .//w:object | .//w:fldChar | .//w:fldSimple | .//w:sym | .//w:footnoteReference | .//w:endnoteReference | .//m:oMath'))
+        row={'body_index':i,'locator':f'word/document.xml/body/*[{i+1}]','kind':kind,'text':t,'section':section,'has_content_object':has_object,'math':node.xpath('.//m:oMath'),'relationships':[]}
         row['math']=[ET.tostring(x,encoding='unicode') for x in row['math']]
         row['scripts']=[{'text':text(r),'vertAlign':r.xpath('./w:rPr/w:vertAlign/@w:val'),'position':r.xpath('./w:rPr/w:position/@w:val')} for r in node.xpath('.//w:r') if r.xpath('./w:rPr/w:vertAlign | ./w:rPr/w:position')]
         from bio_scripts import root_hits as script_glyph_hits

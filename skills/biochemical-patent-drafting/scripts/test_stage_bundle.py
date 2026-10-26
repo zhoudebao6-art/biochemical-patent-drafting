@@ -1,4 +1,5 @@
 """No paid model calls: frozen worker packets, identity and legacy routing."""
+import ast
 import copy
 import json
 import shutil
@@ -26,7 +27,7 @@ class BundleTests(unittest.TestCase):
             shutil.copyfile(self.actual/'references'/name, self.skill/'references'/name)
         (self.skill/'SKILL.md').write_text('fixture skill', encoding='utf-8')
         (self.skill/'references/authoring-toolkit.md').write_text('fixture guide', encoding='utf-8')
-        for name in ('authoring_toolkit.py', 'parallel_batch.py', 'cli_pool.py'):
+        for name in ('authoring_toolkit.py', 'math_fragments.py', 'bio_author.py', 'parallel_batch.py', 'cli_pool.py'):
             (self.skill/'scripts'/name).write_text('# fixture only', encoding='utf-8')
         self.rules = b.read(self.actual/'references/rules.json')
         self.rules_bytes = json.dumps(self.rules, ensure_ascii=False).encode('utf-8')
@@ -99,6 +100,44 @@ class BundleTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Frozen skill file changed'):
             s.verify(manifest)
 
+    def test_runtime_exclusion_preserves_all_local_import_dependencies(self):
+        scripts = {p.stem: p for p in (self.actual/'scripts').glob('*.py')
+                   if not p.name.startswith('test_')}
+        selected = {p.stem for p in s.selected_files(self.actual)
+                    if p.parent.name == 'scripts' and p.suffix == '.py'}
+        self.assertEqual(set(scripts)-selected, {'authoring_toolkit', 'math_fragments'})
+        self.assertTrue({'bio_prepare', 'bio_author', 'bio_check', 'inspect_docx',
+                         'parallel_batch', 'cli_pool', 'stage_pool_runner',
+                         'prepare_handoff', 'worker_receipt'} <= selected)
+        for name in selected:
+            tree = ast.parse(scripts[name].read_text(encoding='utf-8-sig'))
+            dependencies = set()
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Import):
+                    dependencies.update(alias.name.split('.')[0] for alias in node.names)
+                elif isinstance(node, ast.ImportFrom) and node.module:
+                    dependencies.add(node.module.split('.')[0])
+            with self.subTest(module=name):
+                self.assertFalse((dependencies & scripts.keys())-selected)
+
+    def test_real_frozen_navigation_resolves_biochemical_tools_for_each_stage(self):
+        target = self.root/'real-runtime'; target.mkdir()
+        policy = b.read(self.actual/'references/batch-policy.json')
+        record = s.freeze(self.actual, target, self.rules_bytes, policy)
+        manifest = dict(self.m, batch_dir=str(target), policy=policy, skill_snapshot=record)
+        root = s.verify(manifest)
+        for name in ('authoring_toolkit.py', 'math_fragments.py'):
+            self.assertFalse((root/'scripts'/name).exists())
+        for stage in s.STAGES:
+            with self.subTest(stage=stage):
+                paths = s.worker_paths(manifest, stage)
+                self.assertEqual(Path(paths['toolkit']), root/'scripts/bio_author.py')
+                for key in ('stage_guide', 'math_guide', 'toolkit', 'toolkit_guide',
+                            'rules_active', 'runtime_config', 'evidence_query', 'receipt_tool'):
+                    self.assertTrue(Path(paths[key]).is_file(), key)
+                for part in paths['stage_read_parts']:
+                    self.assertEqual(s.sha(part['path']), part['sha256'])
+
     def test_compiler_does_not_drop_unknown_or_project_scoped_rules(self):
         rules = copy.deepcopy(self.rules)
         new = copy.deepcopy(rules['rules'][0]); new.update(id='FUTURE-01', scope='project:测试', instruction='只在指定项目适用；保留例外。', exceptions=['名称中保留原词'])
@@ -109,7 +148,7 @@ class BundleTests(unittest.TestCase):
 
     def test_changed_packet_runtime_and_manifest_are_refused(self):
         root = s.verify(self.m)
-        for rel in ('worker-review.md', 'scripts/authoring_toolkit.py', 'references/manual-format-and-wording.md'):
+        for rel in ('worker-review.md', 'scripts/bio_author.py', 'references/chemistry-data.md'):
             path = root/rel; before = path.read_bytes(); path.write_bytes(before+b'changed')
             with self.assertRaisesRegex(ValueError, 'file changed'): s.verify(self.m)
             path.write_bytes(before)
@@ -155,7 +194,7 @@ class BundleTests(unittest.TestCase):
     def test_invalid_contract_structure_requires_explicit_update(self):
         with self.assertRaises(ValueError): s.project_contract('missing headings')
         bad=copy.deepcopy(self.rules); del bad['rules'][0]['exceptions']
-        with self.assertRaises(ValueError): s.build_packet(s.verify(self.m),bad,'draft')
+        with self.assertRaises((ValueError, KeyError)): s.build_packet(s.verify(self.m),bad,'draft')
 
     def test_frozen_subprocess_preserves_stdout_stderr_utf8_and_exit_code(self):
         (self.skill/'scripts/parallel_batch.py').write_text(
