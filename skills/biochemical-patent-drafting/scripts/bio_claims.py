@@ -9,7 +9,7 @@ LEAD = re.compile(r'^进一步地[，,]在上述技术方案中[，,]')
 OTHER = re.compile(r'^本(?:方案|发明|技术)还提供(?:了)?')
 PRIMARY = re.compile(r'^为了解决上述(?:技术)?问题[，,].*?提供(?:了)?')
 EXPLAIN = re.compile(r'^(?:具体实施中|针对现有技术中|原理说明|工作原理)')
-REF = re.compile(r'权利要求(\d+(?:(?:至|到|[-—–~～、,，或和及])\d+)*)(任一项|中任一项)?所述的?')
+REF = re.compile(r'权利要求(\d+(?:(?:至|到|[-—–~～、,，或和及])\d+)*)((?:中)?任(?:意)?一项)?所述的?')
 
 
 def compact(value):
@@ -22,7 +22,7 @@ def compact(value):
 
 
 def object_key(value):
-    return re.sub(r'^一种', '', compact(value))
+    return re.sub(r'^(?:一种)?(?:所述的?)?', '', compact(value))
 
 
 def candidates(rows):
@@ -138,6 +138,16 @@ def references(head):
     return result, errors
 
 
+def related_object_claims(obj, previous):
+    """Exact named object links only; never infer a scope from title keywords."""
+    key=object_key(obj)
+    for suffix in ('的应用','的用途','的制备方法'):
+        if key.endswith(suffix):
+            target=key[:-len(suffix)]
+            return [n for n,item in previous.items() if object_key(item['object'])==target]
+    return []
+
+
 def expected_head(c):
     if c.get('head'): return c['head']
     return (f"根据权利要求{c['parent']}所述的" if c.get('parent') is not None else '') + c['object']
@@ -165,6 +175,17 @@ def analyze(claims, mapping=None):
             errors.append(f'Dependent protection object differs from parent {n}')
         if kind == 'independent':
             obj = REF.sub('', compact(head)).replace('根据','').replace('所述的','')
+        if kind == 'independent':
+            related=related_object_claims(obj,by_number)
+            # User drafting convention: every independent item after the first
+            # needs an explicit earlier reference, irrespective of its category.
+            # The author/reviewer chooses the supported technical relationship.
+            if any(item['kind']=='independent' for item in rows) and not referenced:
+                errors.append(f'Later independent claim must reference prior claims {n}')
+            if related and referenced and not set(referenced).issubset(related):
+                errors.append(f'Independent object reference crosses a different object family {n}')
+            if len(referenced)>1 and not all(r['alternative'] for r in refs):
+                errors.append(f'Multiple independent object references need alternative wording {n}')
         parents = referenced if kind == 'dependent' else []
         group = by_number.get(parents[0],{}).get('group') if parents else n
         if parents and any(by_number.get(i,{}).get('group') != group for i in parents): errors.append(f'Cross-family dependent claim {n}')

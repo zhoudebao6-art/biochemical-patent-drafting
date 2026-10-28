@@ -10,11 +10,11 @@ plan顶层schema_version=1、source_sha256、title、claim_map、sections。clai
 
 独立项可显式kind=independent、group=自身编号；从属项kind=dependent、group=实际独立祖项编号。简单单父项沿用parent；多项择一从属用parents:[前项编号...]并给head，例如“根据权利要求1至3任一项所述的本案对象”，逐支核基础，不能跨客体分组。head不含编号及“，其特征在于，”，普通单父项不必重复填写。
 
-引用其他客体的独立项保持parent=null，以reference_claims明确在前引用编号，head写本案完整引用式客体；object只写该项真正保护的对象。例：object为“一种材料的制备方法”，head为“一种权利要求1至4任一项所述的材料的制备方法”。这只是语法示意，实际编号、客体数和技术内容来自本案。kind、group与实际生成文本必须一致；不能靠计划里的声明掩盖错误正文。
+两个及以上独权的案件，第二及后续每一独权必须显式引用前文对应权项，不限客体类别。保持kind=independent、parent=null、group=自身序号，以reference_claims列实际在前编号，head写完整引用式客体，object只写真正保护的对象。应用示意：object为“一种材料的应用”，head为“一种根据权利要求1-4任意一项所述材料的应用”。实际范围依本案对应客体和每支适用关系核定，不固定1-7、不跨入无关组；不能证明关联时记录缺口，不省略引用或虚构条件。详见[多独权引用规则](claims-patterns.md)。本组从权继续按真实限定基础选parent，不能把独权reference_claims当成从权parents。第一独权及单独权案件不添加前文引用。kind、group与实际生成文本必须一致；计划不能掩盖正文漏引。
 
 bio_prepare.claim_candidates仅为导航，包含segments、source_body_indices、explanation_body_indices及group_candidate；不是自动确认的主从关系。完整候选只对应一项，解释不凑数。生成器逐项比较源候选的全部技术限定；如确需有据话术调整，source_text_edits:[{old,new,reason}]逐项明确唯一旧文、替换后文和理由，计划块同步实际编辑。此记录只使编辑可追溯，不证明语义通过，不得删改参数/范围/条件来绕过检查。复杂合并拆分需在本attempt先解决源边界并交独立复查，不能静默漏掉候选。
 
-候选source_object取自本组总体方案的真实客体；object与其一致，仅允许已观察到的冠词“一种”差别。按候选原顺序安排claim_map及Word权项，不按父号重排。数字相同但单位、化学字母标记变化的source_text_edits也拒绝；未被机械识别的中文语义改动仍逐条独立复查。
+候选source_object取自本组总体方案的真实客体；object与其一致，仅规范冠词“一种”及源内引导回指“所述”，不改变技术名称。按候选原顺序安排claim_map及Word权项，不按父号重排。数字相同但单位、化学字母标记变化的source_text_edits也拒绝；未被机械识别的中文语义改动仍逐条独立复查。
 
 sections键为abstract、abstract_figure、claims、description、figures，值为按顺序的块数组。块可用source_body_index导入原段/表；普通富文本片段加slice:[start,end]表示可见文字左闭右开区间；跨run保留属性。含数学、图像、OLE、域、制表/换行的段不允许切片，整对象导入或本attempt做最小原生编辑。
 

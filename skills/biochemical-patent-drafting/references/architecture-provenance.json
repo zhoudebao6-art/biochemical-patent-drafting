@@ -127,7 +127,7 @@
     },
     {
       "file": "scripts/bio_claims.py",
-      "sha256": "929e3f4f7190bab5f3259ddd8833311a3bb08f3479bb4a6d23c86c9bb3648d7e"
+      "sha256": "7637b3f6a494f30c87a2b6253d01a07999de9eea2c5ff80a71ed96d1fa25807d"
     },
     {
       "file": "scripts/bio_contract.py",

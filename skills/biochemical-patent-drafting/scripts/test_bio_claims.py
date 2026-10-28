@@ -348,4 +348,85 @@ class ClaimTests(unittest.TestCase):
         self.assertTrue(result['source']['records'][0]['semantic_review_required'])
 
 
+class IndependentReferenceTests(unittest.TestCase):
+    @staticmethod
+    def claim(n,head,body='保留本项限定。'):
+        return {'number':n,'text':f'{n}、{head}，其特征在于，{body}'}
+
+    def test_every_later_independent_requires_prior_reference(self):
+        for obj in ('材料A的应用','材料A的制备方法','检测方法','组合物B','装置C'):
+            claims=[self.claim(1,'一种材料A'),self.claim(2,'一种'+obj)]
+            with self.subTest(object=obj):
+                self.assertTrue(any('Later independent claim must reference prior claims 2' in s
+                                    for s in analyze(claims)['issues']))
+
+    def test_third_independent_cannot_skip_reference(self):
+        claims,plan,e=fixture(3)
+        claims[4]['text']=claims[4]['text'].replace('权利要求1至2任一项所述的','')
+        plan['claim_map'][4]['head']='一种材料A的应用'
+        plan['claim_map'][4]['reference_claims']=[]
+        with self.assertRaisesRegex(ValueError,'Later independent claim must reference prior claims 5'):
+            validate_plan(claims,plan,e)
+
+    def test_reference_variants_keep_independence_and_local_parents(self):
+        for wording in ('任一项','任意一项','中任一项','中任意一项'):
+            for dash in ('-','至'):
+                claims=[self.claim(1,'一种材料A')]
+                claims += [self.claim(n,'根据权利要求1所述的材料A') for n in range(2,8)]
+                claims += [self.claim(8,f'一种根据权利要求1{dash}7{wording}所述材料A的应用'),
+                           self.claim(9,'根据权利要求8所述的材料A的应用')]
+                r=analyze(claims)
+                with self.subTest(wording=wording,dash=dash):
+                    self.assertFalse(r['issues'],r['issues'])
+                    self.assertEqual(r['independent_count'],2)
+                    self.assertEqual(r['claims'][7]['reference_claims'],list(range(1,8)))
+                    self.assertEqual(r['claims'][7]['parents'],[])
+                    self.assertEqual(r['claims'][8]['inheritance_paths'],[[9,8]])
+
+    def test_three_objects_use_actual_ranges_and_separate_groups(self):
+        claims,plan,e=fixture(3)
+        for i in (2,4):
+            claims[i]['text']=claims[i]['text'].replace('一种权利要求1至2任一项','一种根据权利要求1-2任意一项')
+            plan['claim_map'][i]['head']=plan['claim_map'][i]['head'].replace('一种权利要求1至2任一项','一种根据权利要求1-2任意一项')
+        r=validate_plan(claims,plan,e)['structure']
+        self.assertEqual(r['independent_count'],3)
+        self.assertEqual([c['group'] for c in r['claims']],[1,1,3,3,5,5])
+        self.assertEqual(r['claims'][4]['reference_claims'],[1,2])
+
+    def test_single_independent_does_not_require_impossible_reference(self):
+        for obj in ('材料A','材料A的应用','方法B','装置C'):
+            self.assertFalse(analyze([self.claim(1,'一种'+obj)])['issues'])
+        claims,plan,e=fixture(1)
+        self.assertFalse(validate_plan(claims,plan,e)['structure']['issues'])
+
+    def test_single_prior_reference_is_allowed(self):
+        r=analyze([self.claim(1,'一种材料A'),self.claim(2,'一种根据权利要求1所述材料A的应用')])
+        self.assertFalse(r['issues']);self.assertEqual(r['claims'][1]['reference_claims'],[1])
+
+    def test_multi_reference_without_alternative_is_rejected(self):
+        claims,_,_=fixture(2)
+        claims[2]['text']=claims[2]['text'].replace('任一项','')
+        self.assertTrue(any('need alternative' in s for s in analyze(claims)['issues']))
+
+    def test_reference_cannot_include_intervening_method_group(self):
+        claims,_,_=fixture(3)
+        claims[4]['text']=claims[4]['text'].replace('1至2','1至4')
+        self.assertTrue(any('different object family' in s for s in analyze(claims)['issues']))
+
+    def test_source_deictic_is_preserved_but_not_a_different_product(self):
+        claims,plan,e=fixture(3)
+        e['body'][9]['text']=e['body'][9]['text'].replace('提供了材料A','提供了所述材料A')
+        before=copy.deepcopy(e)
+        self.assertFalse(validate_plan(claims,plan,e)['source']['issues'])
+        self.assertEqual(e,before)
+        e['body'][9]['text']=e['body'][9]['text'].replace('材料A','材料B')
+        with self.assertRaisesRegex(ValueError,'object differs from source'):
+            validate_plan(claims,plan,e)
+
+    def test_self_and_forward_independent_references_rejected(self):
+        for ref in ('2','3','1-3任意一项'):
+            claims=[self.claim(1,'一种材料A'),self.claim(2,f'一种根据权利要求{ref}所述材料A的应用')]
+            self.assertTrue(any('Invalid claim parent/reference' in s for s in analyze(claims)['issues']))
+
+
 if __name__=='__main__':unittest.main()

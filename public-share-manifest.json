@@ -1,63 +1,44 @@
 {
-  "version": "1.3.0",
+  "version": "1.3.1",
   "edition": "public-share",
   "date": "2026-10-28",
-  "rule_version": 13,
+  "rule_version": 14,
   "file_count": 140,
-  "archive": "biochemical-patent-drafting-v1.3.0.zip",
-  "archive_sha256": "62d2373eb4855fd577ebcb9183b9a327d5441203fc24c6bb2adad012119d1b75",
-  "source_release_zip_sha256": "c574da0ad48125d54de41cc614756792307fb45868f296cc17a0f281a81e0ef4",
-  "source_manifest_sha256": "ee5e99ac90f300b88f05e20a64c5c5ffbc84087248a4538c48757e547ecd1351",
+  "archive": "biochemical-patent-drafting-v1.3.1.zip",
+  "archive_sha256": "158fb5e95a5250daf2984d93a5d65c60b70beb23d19fd87fd46a3f2523e4cfc6",
+  "source_release_zip_sha256": "d541b5428e52df4ec401f373fed9ecd28f43d289e95ea4154860addf6341cf56",
+  "source_manifest_sha256": "f77db3b177d37675b8df674085c5a36ae963a2f05bcaeb90efcde17bcdfd984b",
   "synced_candidate_changes": [
     "README.md",
     "references/architecture-provenance.json",
-    "references/authoring-toolkit.md",
-    "references/cli-workers.md",
-    "references/fast-execution.md",
-    "scripts/bio_author.py",
-    "scripts/bio_check.py",
-    "scripts/bio_inspection.py",
-    "scripts/inspect_docx.py",
-    "scripts/test_biochemical.py"
+    "references/claims-patterns.md",
+    "references/plan-schema.md",
+    "references/rules.json",
+    "references/worker-standard-coverage.json",
+    "references/worker-standard.md",
+    "scripts/bio_claims.py",
+    "scripts/test_bio_claims.py",
+    "scripts/test_three_stage_pools.py"
   ],
   "new_machine_setup_required": true,
-  "protected_public_materials_unchanged": true,
+  "protected_public_materials_unchanged_except_claim_guide": true,
   "checks": {
-    "total_tests": 162,
+    "total_tests": 175,
     "test_groups": {
-      "biochemical-tests.log": 103,
-      "integration-tests.log": 59
+      "biochemical-tests.log": 113,
+      "integration-tests-rerun.log": 62
     },
     "source_install_zip_identity": true,
-    "rules_policy_template_runtime_unchanged": true,
+    "other_28_rules_unchanged": true,
+    "policy_runtime_template_unchanged": true,
     "softtech_skill_unchanged": true,
-    "source_and_generated_equivalence": true,
+    "real_case_missing_reference_blocked": true,
+    "real_case_generation_probe_passed": true,
+    "five_sample_reports_unchanged": true,
     "paid_model_calls": 0,
-    "public_targeted_tests": 20,
+    "public_targeted_tests": 68,
     "zip_crc_and_all_file_hashes": "passed",
     "public_runtime_unconfigured_and_rejected": true
-  },
-  "metrics": {
-    "reports_compared": 15,
-    "claims": 50,
-    "claim_paragraphs": 72,
-    "docs_characters_before": 10857,
-    "docs_characters_after": 5575,
-    "production_code_lines_before": 11542,
-    "production_code_lines_after": 11476,
-    "removed_uncalled_functions": [
-      {
-        "name": "wording_evidence",
-        "lines": 33
-      },
-      {
-        "name": "benefit_numbering_evidence",
-        "lines": 42
-      }
-    ],
-    "manual_check_commands_before": 2,
-    "manual_check_commands_after": 1,
-    "scope": "Maintenance equivalence only; no semantic or page acceptance and no throughput measurement."
   },
   "files": [
     {
@@ -74,11 +55,11 @@
     },
     {
       "path": "README.md",
-      "sha256": "d435967adabede1f33afc5eb3ace607a152fb6dc1c3c6d086096ce88783fd164"
+      "sha256": "8347638d8ff3e7bb7e42a77052b12e6d0e5a982cb99ed86b89991f504b9113f3"
     },
     {
       "path": "references/architecture-provenance.json",
-      "sha256": "ffa7686ec3711760bba10935a84de140f8e5cdda0e52eb69b998022152d6befc"
+      "sha256": "9f9ee66882c4f01b5217bf9d26136e62335a0b554dbcad446a0ffaa27ea709ff"
     },
     {
       "path": "references/authoring-toolkit.md",
@@ -102,7 +83,7 @@
     },
     {
       "path": "references/claims-patterns.md",
-      "sha256": "bba123d6b6fdc86f6cd5f84c57f49207c50be888d532098be46d409c42e423de"
+      "sha256": "58b27b339048982b1730fbf156e3b8d2f48c1cb1819382fe9abeccd2f35314ae"
     },
     {
       "path": "references/cli-workers.md",
@@ -154,7 +135,7 @@
     },
     {
       "path": "references/plan-schema.md",
-      "sha256": "3c98e21c245c3ec0b7ed83dc0d8e86bd66cfb80d361291d73b4824398b912a31"
+      "sha256": "281826397464971802958f8e1055badc1acb90c51f6035166bbace00053a9e2a"
     },
     {
       "path": "references/presentation-user-requirement.txt",
@@ -166,7 +147,7 @@
     },
     {
       "path": "references/rules.json",
-      "sha256": "65607852e6f813ee5b3fa8878f7d010ece376594f58baedac0be67023c21d4cf"
+      "sha256": "46c8bb0c7ce558985298c0ee2fca9d3f3c79cc5c4c143d1a6ad0e2a05f8c6bd8"
     },
     {
       "path": "references/runtime.json",
@@ -202,11 +183,11 @@
     },
     {
       "path": "references/worker-standard-coverage.json",
-      "sha256": "50bc9597c59b07176224dbae1618e5e5692cdad8e1d1cc258d2b8f5cc84318d7"
+      "sha256": "1a55ef81f67e8661d90ee539a5965d05dfce681c1a8ec27adac2d057fd3a4595"
     },
     {
       "path": "references/worker-standard.md",
-      "sha256": "42fa3864b8315ac2c5cc57e65e269894800aa1076f6de1163eca4b3e7bec170a"
+      "sha256": "ceb137b52aa58b80e2cd794f51bccf7d82ef64a881284663d7ee85c9f6c9595f"
     },
     {
       "path": "scripts/authoring_toolkit.py",
@@ -234,7 +215,7 @@
     },
     {
       "path": "scripts/bio_claims.py",
-      "sha256": "929e3f4f7190bab5f3259ddd8833311a3bb08f3479bb4a6d23c86c9bb3648d7e"
+      "sha256": "7637b3f6a494f30c87a2b6253d01a07999de9eea2c5ff80a71ed96d1fa25807d"
     },
     {
       "path": "scripts/bio_common.py",
@@ -394,7 +375,7 @@
     },
     {
       "path": "scripts/test_bio_claims.py",
-      "sha256": "1c13cfb6348e3d2df14ec07406d0913c0bb164bb091f16de169f64bd54c5c130"
+      "sha256": "36f0963a34bfd590df2491712facb26920b5ee84ddacafc8a2665d4d39ec0a0a"
     },
     {
       "path": "scripts/test_bio_layout.py",
@@ -586,7 +567,7 @@
     },
     {
       "path": "scripts/test_three_stage_pools.py",
-      "sha256": "caf648d2b667a6c6689b96c6ae55e94cc1db2f21e1baf81ce3d98546b1ff7d13"
+      "sha256": "41e378278930bf97de29e34d18ba98c82eceb8f6ac1fe90d3537d9285ccb33ac"
     },
     {
       "path": "scripts/test_title_identity.py",
