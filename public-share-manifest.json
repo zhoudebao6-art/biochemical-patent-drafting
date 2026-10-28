@@ -1,27 +1,27 @@
 {
-  "version": "1.6.1",
+  "version": "1.7.0",
   "edition": "public-share",
   "date": "2026-10-28",
   "rule_version": 18,
   "file_count": 142,
-  "archive": "biochemical-patent-drafting-v1.6.1.zip",
-  "archive_sha256": "b72da9ffc7ebf4fa79782f9cbbdfdf075748eecf2adbe4084d98e78f4a7b3a6a",
-  "source_release_zip_sha256": "f10c56b1e5cc5eceff0957e2b6d128569fbbd9eb36f11828168f78e908602ff4",
+  "archive": "biochemical-patent-drafting-v1.7.0.zip",
+  "archive_sha256": "5dd24666651e1e9cbd62b82faff3ea13937c6397e25a17324442a23582f74612",
+  "source_release_zip_sha256": "347b894e66d971596345857935902283f7b9d2d343111c1ad4eb32c6afb40275",
   "new_machine_setup_required": true,
   "checks": {
-    "total_tests": 293,
+    "total_tests": 296,
     "test_groups": {
-      "biochemical-tests.log": 139,
+      "biochemical-tests.log": 142,
       "integration-tests.log": 154
     },
     "source_install_zip_identity": true,
-    "rules_policy_runtime_template_unchanged": false,
+    "rules_policy_runtime_template_unchanged": true,
     "softtech_skill_unchanged": true,
     "real_document_equivalence": false,
-    "validation_material": "Local synthetic software layout fixtures, rendered in WPS; no user source documents included.",
+    "validation_material": "Synthetic software fixtures only; no original project documents, human finals or chat data collected for model evaluation or training.",
     "paid_model_calls": 0,
     "throughput_measurement": false,
-    "public_targeted_tests": 146,
+    "public_targeted_tests": 149,
     "public_runtime_unconfigured_and_rejected": true
   },
   "files": [
@@ -39,11 +39,11 @@
     },
     {
       "path": "README.md",
-      "sha256": "2f632c3f5634cc9ca0ee08503daf943bf18b684538d4967f11abef31e45baf98"
+      "sha256": "266eb8f31661f187262171f552b254397e56b6f693d9bdabf89ef5d57527c10f"
     },
     {
       "path": "references/architecture-provenance.json",
-      "sha256": "6cd2b9d3abad8bfbcaad880535ab0bb9c8665f4d1bddb133cbfe913565f0a10f"
+      "sha256": "7947d8951386fec7bcb48c652ede7f081ed957dcf7aa123ce2e9670d5bc87fe7"
     },
     {
       "path": "references/authoring-toolkit.md",
@@ -87,7 +87,7 @@
     },
     {
       "path": "references/fast-execution.md",
-      "sha256": "82e8caee921dd7e9a1dd5bb3bd7af4183b49e57704e146a5a6acd0ce124c4317"
+      "sha256": "631f91a99256dfcc1c09524766e03bc3ebb5fcf291eef525e8da60d4df15b97e"
     },
     {
       "path": "references/figure-ending-user-requirement.txt",
@@ -191,11 +191,11 @@
     },
     {
       "path": "scripts/bio_background.py",
-      "sha256": "bc5f07250cafeb2df6680c90c5515dd3b287d58a8e8d5d32aa13fa1731eb93d4"
+      "sha256": "8695b4800812f4ba80d7808039d6afd1f81543fd9e97172f0c31d0c8f5699609"
     },
     {
       "path": "scripts/bio_check.py",
-      "sha256": "e6f9a15acfc9f15780ea62a24e8f85765b0e6105905e04d78c4a659731b66e3f"
+      "sha256": "1a6169a2dee9ff624302e37f5a73ccdf051451da909eb92f984f4a22725f77d8"
     },
     {
       "path": "scripts/bio_claims.py",
@@ -227,15 +227,15 @@
     },
     {
       "path": "scripts/bio_presentation.py",
-      "sha256": "3f0bc521076eddc3f1b87d9a934f60b1178e83779137a325233aa489dbabf22d"
+      "sha256": "873d86f067cc03be6c5fd30fd1fe0ca1bfd8245e6145cd206a539588fda2e210"
     },
     {
       "path": "scripts/bio_scripts.py",
-      "sha256": "15a171cf25f5dd67599fee892c005e4f41b266bcebf312573ccba7453fff29ee"
+      "sha256": "5e1e5a7bc150b2ca785b633cb77af94275f926465f14af146919c23d038e8524"
     },
     {
       "path": "scripts/bio_spacing.py",
-      "sha256": "9d9365d42103387ff918b94334574bc9141cebb85c450c1e8cab337b57bdd632"
+      "sha256": "e9818b8503cd83bce37471f2b3a1262987ccfad69ed5d1a1d4708b6b4bd23f1b"
     },
     {
       "path": "scripts/case_folder_delivery.py",
@@ -371,7 +371,7 @@
     },
     {
       "path": "scripts/test_bio_package.py",
-      "sha256": "53376ac2368ef7f02a251efbd8f6b55b9269fcfdfb31e58a4b45dd6270d4124e"
+      "sha256": "772d0d19c9ae700af4119103c4c593f7ac09a88a89741d5bffef030b5416637e"
     },
     {
       "path": "scripts/test_bio_presentation.py",

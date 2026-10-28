@@ -5,7 +5,7 @@ sample IDs and real OMML structures are never guessed or flattened.
 """
 from pathlib import Path
 from copy import deepcopy
-import hashlib,unicodedata,zipfile,os,tempfile
+import hashlib,unicodedata,zipfile
 from lxml import etree as ET
 from bio_spacing import selected_parts,fields
 

@@ -1,6 +1,6 @@
 """Visible-content space policy; raw sources, XML syntax and field code stay intact."""
 from pathlib import Path
-import hashlib, io, unicodedata, zipfile
+import hashlib, unicodedata, zipfile
 from lxml import etree as ET
 
 W='http://schemas.openxmlformats.org/wordprocessingml/2006/main'
@@ -24,7 +24,7 @@ def fields(node,part):
     return []
 def root_hits(root,part):
     hits=[]
-    def walk(node,path,parents):
+    def walk(node,path):
         if node.tag in {f'{{{W}}}pPr',f'{{{W}}}rPr',f'{{{W}}}del',f'{{{W}}}moveFrom',f'{{{W}}}instrText'}:return
         for attr,value in fields(node,part):
             for i,c in enumerate(value):
@@ -33,8 +33,8 @@ def root_hits(root,part):
         counts={}
         for child in node:
             name=child.tag.rsplit('}',1)[-1];counts[name]=counts.get(name,0)+1
-            walk(child,path+'/'+name+'['+str(counts[name])+']',parents+[node.tag])
-    walk(root,root.tag.rsplit('}',1)[-1],[])
+            walk(child,path+'/'+name+'['+str(counts[name])+']')
+    walk(root,root.tag.rsplit('}',1)[-1])
     return hits
 def scan_docx(path):
     hits=[]

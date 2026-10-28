@@ -59,8 +59,12 @@ def inspect(path,plan=None,evidence=None):
     if d.element.body.xpath('.//w:ins | .//w:del'): errors.append('Tracked changes remain')
     if d.element.body.xpath('.//w:object'): warnings.append('OLE objects require real visual review')
     if d.element.body.xpath('.//w:numPr'): warnings.append('Automatic numbering needs source numbering verification')
-    tables=[]
-    for t in d.tables: tables.append([[c.text for c in row.cells] for row in t.rows])
+    tables=d.tables
+    # Preserve the existing merged-cell mapping validation, without building
+    # unused cell text matrices. Cell content is checked in the XML evidence.
+    for table in tables:
+        for row in table.rows:
+            _ = row.cells
     if evidence:
         from bio_presentation import example_entries,compare_examples
         expected=example_entries([{'text':r['text'],'kind':r['kind'],'location':r['body_index']} for r in evidence['body']],True)

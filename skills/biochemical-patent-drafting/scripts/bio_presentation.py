@@ -250,35 +250,39 @@ def bold_reader(styles):
 
 def evidence(root,styles,artifact_sha):
     body=root.find('w:body',NS);nodes=list(body) if body is not None else []
+    text_by_node={}
+    def node_text(node):
+        if node not in text_by_node:text_by_node[node]=visible(node)
+        return text_by_node[node]
     is_bold=bold_reader(styles);issues=[];captions=[];intro=[];labels=[];table_count=0
-    field=next((i for i,n in enumerate(nodes) if n.tag==qn('p') and visible(n).strip()=='技术领域'),None)
-    title=next((visible(n).strip() for n in reversed(nodes[:field]) if n.tag==qn('p') and visible(n).strip()),None) if field is not None else None
+    field=next((i for i,n in enumerate(nodes) if n.tag==qn('p') and node_text(n).strip()=='技术领域'),None)
+    title=next((node_text(n).strip() for n in reversed(nodes[:field]) if n.tag==qn('p') and node_text(n).strip()),None) if field is not None else None
     for i,n in enumerate(nodes):
         if n.tag==qn('tbl'):
             table_count+=1
-            previous=next(((j,nodes[j]) for j in range(i-1,-1,-1) if nodes[j].tag!=qn('p') or visible(nodes[j]).strip()),None)
+            previous=next(((j,nodes[j]) for j in range(i-1,-1,-1) if nodes[j].tag!=qn('p') or node_text(nodes[j]).strip()),None)
             prev=previous[1] if previous is not None else None
-            mt=CAPTION.fullmatch(compact(visible(prev))) if prev is not None and prev.tag==qn('p') else None
+            mt=CAPTION.fullmatch(compact(node_text(prev))) if prev is not None and prev.tag==qn('p') else None
             if not mt:issues.append({'body_index':i,'table':table_count,'code':'descriptive_table_caption_missing'});continue
             if int(mt[1])!=table_count:issues.append({'body_index':i,'table':table_count,'code':'table_caption_number_mismatch'})
             jc=prev.find('w:pPr/w:jc',NS);ind=prev.find('w:pPr/w:ind',NS)
             if jc is None or jc.get(qn('val'))!='center' or ind is None or any(ind.get(qn(k),'0')!='0' for k in ('firstLine','firstLineChars','left','right','hanging','hangingChars')):issues.append({'table':table_count,'code':'table_caption_alignment'})
             if not _on(prev.find('w:pPr/w:keepNext',NS)):issues.append({'table':table_count,'code':'table_caption_can_orphan'})
-            captions.append({'table':table_count,'body_index':previous[0],'text':visible(prev)})
+            captions.append({'table':table_count,'body_index':previous[0],'text':node_text(prev)})
         if n.tag!=qn('p') or field is None or i<field:continue
-        value=compact(visible(n))
+        value=compact(node_text(n))
         if value in BENEFIT_LABELS or OLD_INTRO.fullmatch(value):issues.append({'body_index':i,'code':'extra_benefit_heading_or_intro'})
         if value==BENEFIT_INTRO:intro.append(i)
         if value not in MAIN_HEADINGS and value!=compact(title or ''):
-            if any(visible(r).strip() and is_bold(n,r) for r in n.findall('.//w:r',NS)):issues.append({'body_index':i,'code':'non_main_text_bold','text':visible(n)[:90]})
+            if any(node_text(r).strip() and is_bold(n,r) for r in n.findall('.//w:r',NS)):issues.append({'body_index':i,'code':'non_main_text_bold','text':node_text(n)[:90]})
             style=n.find('w:pPr/w:pStyle',NS);sid=style.get(qn('val'),'') if style is not None else ''
             outline=n.find('w:pPr/w:outlineLvl',NS)
-            if re.fullmatch(r'Heading\d+',sid,re.I) or outline is not None and int(outline.get(qn('val'),'9'))<9:issues.append({'body_index':i,'code':'extra_outline_heading','text':visible(n)[:90]})
-            if value in ('制备工艺','制备工艺：') or CAPTION.fullmatch(value):labels.append({'body_index':i,'text':visible(n),'format':'plain'})
+            if re.fullmatch(r'Heading\d+',sid,re.I) or outline is not None and int(outline.get(qn('val'),'9'))<9:issues.append({'body_index':i,'code':'extra_outline_heading','text':node_text(n)[:90]})
+            if value in ('制备工艺','制备工艺：') or CAPTION.fullmatch(value):labels.append({'body_index':i,'text':node_text(n),'format':'plain'})
     if len(intro)>1:issues.append({'code':'duplicate_benefit_introductions','body_indices':intro})
     descriptions=[]
     for i,p,ending in figure_description_entries(root):
-        value=visible(p).rstrip();descriptions.append({'body_index':i,'text':value,'expected_ending':ending})
+        value=node_text(p).rstrip();descriptions.append({'body_index':i,'text':value,'expected_ending':ending})
         if not value.endswith(ending):
             issues.append({'code':'figure_description_terminal_not_full_stop' if ending=='。' else 'figure_description_terminal_not_semicolon',
                            'body_index':i,'text':value,'expected_ending':ending})
@@ -310,7 +314,7 @@ def evidence(root,styles,artifact_sha):
         return values
     if field is not None:
         for i in range(field,end+1):
-            n=nodes[i];value=compact(visible(n))
+            n=nodes[i];value=compact(node_text(n))
             if (n.tag!=qn('p') or not value or value in MAIN_HEADINGS or value==compact(title or '') or CAPTION.fullmatch(value)
                 or any(n.find('.//'+tag,NS) is not None for tag in ('m:oMath','w:drawing','w:pict','w:object'))):continue
             spacing=prop(n,'spacing');indent=prop(n,'ind')
@@ -322,9 +326,9 @@ def evidence(root,styles,artifact_sha):
                 any(indent.get(qn(k),'0')!='0' for k in ('left','right','leftChars','rightChars','start','end','startChars','endChars','hanging','hangingChars'))):
                 issues.append({'body_index':i,'code':'description_body_paragraph_geometry'})
     flow_checked=[]
-    figure_entries={i for i,_,_ in figure_description_entries(root)}
+    figure_entries={entry['body_index'] for entry in descriptions}
     def prose(i):
-        n=nodes[i];value=compact(visible(n))
+        n=nodes[i];value=compact(node_text(n))
         return (n.tag==qn('p') and bool(value) and value not in MAIN_HEADINGS
                 and value!=compact(title or '') and not CAPTION.fullmatch(value)
                 and i not in figure_entries and value not in ('制备工艺','配方','测试方法','结果分析') and not value.endswith(('：',':'))
@@ -347,14 +351,14 @@ def evidence(root,styles,artifact_sha):
             # Suspected split paragraphs require source review; never merge
             # across a table, heading, section or a new numbered step by guess.
             j=i+1
-            while (j<=end and nodes[j].tag==qn('p') and not compact(visible(nodes[j]))
+            while (j<=end and nodes[j].tag==qn('p') and not compact(node_text(nodes[j]))
                    and not any(nodes[j].find('.//'+tag,NS) is not None for tag in ('w:sectPr','w:drawing','w:pict','w:object','m:oMath'))):
                 j+=1
             if (j<=end and n.find('w:pPr/w:sectPr',NS) is None
-                and compact(visible(n)).endswith(('，',',','、')) and prose(j)
-                and not FLOW_BOUNDARY.match(compact(visible(nodes[j])))):
+                and compact(node_text(n)).endswith(('，',',','、')) and prose(j)
+                and not FLOW_BOUNDARY.match(compact(node_text(nodes[j])))):
                 issues.append({'body_index':i,'next_body_index':j,'code':'description_prose_split_after_comma'})
-    examples=example_entries([{'text':visible(n),'kind':'p' if n.tag==qn('p') else 'tbl','location':i} for i,n in enumerate(nodes)])
+    examples=example_entries([{'text':node_text(n),'kind':'p' if n.tag==qn('p') else 'tbl','location':i} for i,n in enumerate(nodes)])
     for row in examples:
         if row['split']:issues.append({'code':'example_introduction_split','key':row['key']})
     return {'schema_version':1,'artifact_sha256':artifact_sha,'complete':True,'examples_contract_version':1,'prose_flow_contract_version':1,'prose_flow_checked_body_indices':flow_checked,'examples':examples,'tables':table_count,'captions':captions,'benefit_intro_body_indices':intro,'plain_labels':labels,'figure_descriptions':descriptions,'issues':issues,'scope':'Source caption meanings, preserved technical facts, allowed headings and actual page pairing require independent semantic/visual review; screenshot annotations are not document elements'}

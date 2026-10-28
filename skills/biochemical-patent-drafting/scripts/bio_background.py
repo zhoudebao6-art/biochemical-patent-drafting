@@ -5,7 +5,7 @@ inherited fills returning. Scientific figure pixels and drawing fills are
 source objects, not page formatting; retain them for independent visual review.
 """
 from pathlib import Path
-import hashlib,os,tempfile,zipfile
+import hashlib,zipfile
 from lxml import etree as ET
 
 W='http://schemas.openxmlformats.org/wordprocessingml/2006/main'

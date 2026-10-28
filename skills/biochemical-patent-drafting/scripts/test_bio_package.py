@@ -155,4 +155,48 @@ class PackageTests(unittest.TestCase):
                 else: self.assertIn(stage_bundle.rule_block(rule), packet)
 
 
+
+class InspectionWorkTests(unittest.TestCase):
+    def test_table_count_does_not_build_unused_cell_text_matrices(self):
+        from docx.table import _Cell
+        from bio_check import inspect
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp)/'tables.docx';d=Document();d.add_paragraph('表格计数软件夹具')
+            for k in range(2):
+                t=d.add_table(rows=3,cols=4)
+                for i,row in enumerate(t.rows):
+                    for j,c in enumerate(row.cells):c.text=f'单元格{k}-{i}-{j}'
+                t.cell(1,0).merge(t.cell(1,1))
+            d.save(path);before=sha(path)
+            with patch.object(_Cell,'text',new=property(lambda self: (_ for _ in ()).throw(AssertionError('unused cell text read')))):
+                report=inspect(path)
+            self.assertEqual(report['tables'],2);self.assertEqual(sha(path),before)
+            self.assertEqual(len(report['table_layout']['tables']),2)
+    def test_invalid_vertical_merge_is_still_rejected(self):
+        from bio_check import inspect
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp)/'bad-merge.docx';d=Document();t=d.add_table(rows=1,cols=1)
+            prop=t.cell(0,0)._tc.get_or_add_tcPr();prop.append(OxmlElement('w:vMerge'))
+            d.save(path);before=sha(path)
+            with self.assertRaises(ValueError):inspect(path)
+            self.assertEqual(sha(path),before)
+    def test_presentation_shares_text_and_figure_locations_only_within_one_call(self):
+        import bio_presentation as p
+        from bio_author import format_p
+        d=Document();d.add_paragraph('一种排版测试材料');d.add_paragraph('技术领域')
+        body=d.add_paragraph('本段用于验证连续正文。');format_p(body._p,'body','description')
+        d.add_paragraph('附图说明');d.add_paragraph('图1为本发明的示意图。');d.add_paragraph('具体实施方式')
+        original=p.visible;counts=Counter()
+        def visible(node):counts[node]+=1;return original(node)
+        with patch.object(p,'visible',side_effect=visible),patch.object(p,'figure_description_entries',wraps=p.figure_description_entries) as figures:
+            first=p.evidence(d.element,d.styles.element,'first')
+        self.assertEqual(figures.call_count,1)
+        self.assertEqual(counts[body._p],2)  # body text view plus one figure-list scan
+        body.text='有益效果'
+        second=p.evidence(d.element,d.styles.element,'second')
+        self.assertEqual(second['artifact_sha256'],'second')
+        self.assertNotIn('extra_benefit_heading_or_intro',{x['code'] for x in first['issues']})
+        self.assertIn('extra_benefit_heading_or_intro',{x['code'] for x in second['issues']})
+        self.assertEqual(len(second['prose_flow_checked_body_indices']),len(first['prose_flow_checked_body_indices']))
+
 if __name__ == '__main__': unittest.main()

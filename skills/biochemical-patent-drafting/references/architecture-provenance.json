@@ -126,7 +126,7 @@
     },
     {
       "file": "scripts/bio_check.py",
-      "sha256": "e6f9a15acfc9f15780ea62a24e8f85765b0e6105905e04d78c4a659731b66e3f"
+      "sha256": "1a6169a2dee9ff624302e37f5a73ccdf051451da909eb92f984f4a22725f77d8"
     },
     {
       "file": "scripts/bio_claims.py",
@@ -146,7 +146,7 @@
     },
     {
       "file": "scripts/bio_presentation.py",
-      "sha256": "3f0bc521076eddc3f1b87d9a934f60b1178e83779137a325233aa489dbabf22d"
+      "sha256": "873d86f067cc03be6c5fd30fd1fe0ca1bfd8245e6145cd206a539588fda2e210"
     },
     {
       "file": "scripts/bio_package.py",
@@ -154,15 +154,15 @@
     },
     {
       "file": "scripts/bio_spacing.py",
-      "sha256": "9d9365d42103387ff918b94334574bc9141cebb85c450c1e8cab337b57bdd632"
+      "sha256": "e9818b8503cd83bce37471f2b3a1262987ccfad69ed5d1a1d4708b6b4bd23f1b"
     },
     {
       "file": "scripts/bio_background.py",
-      "sha256": "bc5f07250cafeb2df6680c90c5515dd3b287d58a8e8d5d32aa13fa1731eb93d4"
+      "sha256": "8695b4800812f4ba80d7808039d6afd1f81543fd9e97172f0c31d0c8f5699609"
     },
     {
       "file": "scripts/bio_scripts.py",
-      "sha256": "15a171cf25f5dd67599fee892c005e4f41b266bcebf312573ccba7453fff29ee"
+      "sha256": "5e1e5a7bc150b2ca785b633cb77af94275f926465f14af146919c23d038e8524"
     },
     {
       "file": "scripts/case_folder_delivery.py",
