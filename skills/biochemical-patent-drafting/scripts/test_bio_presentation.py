@@ -247,4 +247,94 @@ class PresentationTests(unittest.TestCase):
                 output_contract.verify(m,{'title':f.e['title_candidate']},{'input_artifact_sha256':report['sha256']},{})
 
 
+
+class ProseFlowTests(unittest.TestCase):
+    def setUp(self):
+        from bio_presentation import normalize_prose_flow
+        self.normalize=normalize_prose_flow
+    def fixture(self):
+        f=fixtures.BiochemicalBehaviorTests();f.setUp();self.addCleanup(f.doCleanups);return f
+    def paragraph(self):
+        d=Document();p=d.add_paragraph('测试句中的值为1.25mAh·g');p.add_run('-1').font.superscript=True;p.add_run('，')
+        return d,p
+    def test_internal_line_page_and_carriage_breaks_preserve_rich_runs_and_inline_math(self):
+        from docx.oxml import OxmlElement
+        from lxml import etree
+        for tag,typ in [('br','textWrapping'),('br','page'),('cr',None)]:
+            with self.subTest(tag=tag,typ=typ):
+                d,p=self.paragraph();br=OxmlElement('w:'+tag)
+                if typ:br.set(qn('w:type'),typ)
+                p.add_run()._r.append(br);p.add_run('另一值为2.50mAh·cm');p.add_run('-2').font.superscript=True
+                math=OxmlElement('m:oMath');r=OxmlElement('m:r');t=OxmlElement('m:t');t.text='x';r.append(t);math.append(r);p._p.append(math)
+                before=visible(p._p);math_xml=etree.tostring(math)
+                self.assertEqual(len(self.normalize(p._p,'body','description')),1)
+                self.assertEqual(visible(p._p),before);self.assertEqual(etree.tostring(math),math_xml)
+                self.assertEqual([r.text for r in p.runs if r.font.superscript],['-1','-2'])
+                self.assertFalse(p._p.xpath('.//w:br | .//w:cr'));self.assertEqual(self.normalize(p._p,'body','description'),[])
+    def test_ambiguous_break_is_rejected_without_partial_changes(self):
+        from docx.enum.text import WD_BREAK
+        for tail in ('S2、开始下一步骤。','另一个没有前导逗号的语句。'):
+            d,p=self.paragraph();p.add_run().add_break();p.add_run(tail);p.add_run().add_break(WD_BREAK.COLUMN);p.add_run('后文。')
+            before=p._p.xml
+            with self.assertRaisesRegex(ValueError,'Ambiguous manual prose break'):self.normalize(p._p,'body','description')
+            self.assertEqual(p._p.xml,before)
+    def test_other_scopes_and_cached_pagination_are_preserved(self):
+        from docx.oxml import OxmlElement
+        d,p=self.paragraph();p.add_run().add_break();p.add_run('后文。')
+        for role,slot in [('body','claims'),('table','description'),('caption','description'),('image','figures')]:
+            before=p._p.xml;self.assertFalse(self.normalize(p._p,role,slot));self.assertEqual(p._p.xml,before)
+        d,p=self.paragraph();p.add_run()._r.append(OxmlElement('w:lastRenderedPageBreak'));p.add_run('后文。')
+        before=p._p.xml;self.assertFalse(self.normalize(p._p,'body','description'));self.assertEqual(p._p.xml,before)
+    def test_literal_newline_is_not_silently_removed(self):
+        d,p=self.paragraph();p.runs[-1]._r.find(qn('w:t')).text='，\n后文。';before=p._p.xml
+        with self.assertRaisesRegex(ValueError,'Ambiguous manual prose break'):self.normalize(p._p,'body','description')
+        self.assertEqual(p._p.xml,before)
+    def test_body_pagination_overrides_style_but_heading_stays_with_next(self):
+        from bio_author import format_p
+        d,p=self.paragraph();d.styles['Normal'].paragraph_format.keep_with_next=True
+        format_p(p._p,'body','description')
+        for flag in ('keepNext','keepLines','pageBreakBefore','widowControl'):self.assertEqual(p._p.find('w:pPr/w:'+flag,p._p.nsmap).get(qn('w:val')),'0')
+        heading=d.add_paragraph('技术领域');format_p(heading._p,'heading','description')
+        self.assertTrue(heading.paragraph_format.keep_with_next)
+    def test_inspection_flags_breaks_split_paragraphs_and_effective_pagination(self):
+        from bio_author import format_p
+        d=Document();d.add_paragraph('一种格式测试材料');d.add_paragraph('技术领域')
+        a=d.add_paragraph('前半句，');b=d.add_paragraph('后半句。')
+        for p in (a,b):format_p(p._p,'body','description')
+        b.add_run().add_break();b.add_run('仍有内容。');a.paragraph_format.keep_with_next=True
+        codes={i['code'] for i in presentation(d.element,d.styles.element,'fixture')['issues']}
+        self.assertTrue({'description_manual_break','description_prose_forced_pagination','description_prose_split_after_comma'}<=codes)
+        b.insert_paragraph_before('')
+        split=next(x for x in presentation(d.element,d.styles.element,'fixture')['issues'] if x['code']=='description_prose_split_after_comma')
+        self.assertEqual(split['next_body_index']-split['body_index'],2)
+        a.paragraph_format.keep_with_next=None;d.styles['Normal'].paragraph_format.keep_with_next=True
+        self.assertIn('description_prose_forced_pagination',{i['code'] for i in presentation(d.element,d.styles.element,'fixture')['issues']})
+    def test_numbered_steps_and_section_boundaries_are_not_merged(self):
+        from bio_author import format_p
+        from docx.enum.section import WD_SECTION_START
+        d=Document();d.add_paragraph('一种格式测试材料');d.add_paragraph('技术领域')
+        for t in ('S1、第一独立步骤，','S2、第二独立步骤。'):
+            p=d.add_paragraph(t);format_p(p._p,'body','description')
+        d.add_section(WD_SECTION_START.NEW_PAGE);d.add_paragraph('附图占位')
+        ev=presentation(d.element,d.styles.element,'fixture')
+        self.assertNotIn('description_prose_split_after_comma',{x['code'] for x in ev['issues']})
+        self.assertEqual(len(d.sections),2)
+    def test_real_build_normalizes_copied_source_break_and_keeps_source_read_only(self):
+        from bio_prepare import prepare
+        from bio_common import sha
+        f=self.fixture();d=Document(f.source);p=next(p for p in d.paragraphs if p.text.startswith('结果分析'))
+        anchor=p;p=d.add_paragraph();anchor._p.addnext(p._p);p.add_run('测试值为1.25mAh·g');p.add_run('-1').font.superscript=True;p.add_run('，');p.add_run().add_break();p.add_run('另一值为2.50mAh·cm');p.add_run('-2').font.superscript=True;p.add_run('。')
+        d.save(f.source);source_sha=sha(f.source);f.e=prepare(f.source,f.root/'flow-evidence');write(f.root/'plan.json',f.plan())
+        out=f.root/'flow.docx';build(f.root/'flow-evidence/evidence.json',f.root/'plan.json',out)
+        self.assertEqual(sha(f.source),source_sha)
+        current=next(p for p in Document(out).paragraphs if '测试值为' in p.text)
+        self.assertNotIn('\n',current.text);self.assertIn('，另一值为',current.text)
+        self.assertEqual([r.text for r in current.runs if r.font.superscript],['-1','-2'])
+        self.assertTrue(any(b.get('prose_flow_normalization') for b in read(out.with_suffix('.trace.json'))['blocks']))
+    def test_final_contract_rejects_old_presentation_evidence(self):
+        f=self.fixture();out=f.build();info=inspect_docx.run_inspection(out,f.root/'flow-inspection','draft',True,True);report=read(info['inspection'])
+        bio_contract.check(report,f.e['title_candidate'])
+        report['biochemical_presentation_evidence'].pop('prose_flow_contract_version')
+        with self.assertRaisesRegex(batch_tool.BatchError,'continuous prose flow evidence missing'):bio_contract.check(report,f.e['title_candidate'])
+
 if __name__=='__main__':unittest.main()

@@ -13,7 +13,7 @@ from lxml import etree as ET
 from bio_common import SKILL, read, write, sha
 from bio_prepare import text
 from bio_layout import normalize_plan, table_format, summary_format, SUMMARY
-from bio_presentation import paragraph_role
+from bio_presentation import paragraph_role, normalize_prose_flow
 
 SLOTS=['abstract','abstract_figure','claims','description','figures']
 REPLACE=[('本产品','本发明'),('本方案','本发明'),('本技术','本发明')]
@@ -25,14 +25,14 @@ def format_p(p,role='body',slot=None):
     for tag in ['spacing','ind','jc','keepNext','keepLines','pageBreakBefore','widowControl','outlineLvl']:
         el=pr.find(qn('w:'+tag))
         if el is not None: pr.remove(el)
-    for tag in ['keepLines','pageBreakBefore','widowControl']:
+    for tag in ['keepNext','keepLines','pageBreakBefore','widowControl']:
         e=OxmlElement('w:'+tag); e.set(qn('w:val'),'0'); pr.append(e)
     natural=slot=='description' or role in ('image','heading','title','caption')
     e=OxmlElement('w:spacing'); e.set(qn('w:before'),'100' if role not in ('image','caption') else '0'); e.set(qn('w:after'),'0'); e.set(qn('w:line'),'312' if natural else '480'); e.set(qn('w:lineRule'),'auto' if natural else 'exact'); pr.append(e)
     e=OxmlElement('w:ind'); e.set(qn('w:firstLineChars'),'0' if role in ('image','caption','title','table_caption') else '200'); pr.append(e)
     e=OxmlElement('w:jc'); e.set(qn('w:val'),'center' if role in ('image','caption','title','table_caption') else 'both'); pr.append(e)
     if role in ('image','heading','title','table_caption','results_analysis_heading','benefit_intro','auxiliary_label'):
-        e=OxmlElement('w:keepNext'); pr.append(e)
+        pr.find(qn('w:keepNext')).set(qn('w:val'),'1')
     for r in p.xpath('.//w:r'):
         rp=r.get_or_add_rPr()
         for tag in ['rFonts','sz','szCs','color','highlight','b','bCs']:
@@ -185,6 +185,7 @@ def build(evidence_path,plan_path,output):
         if ET.QName(n).localname=='p':
             if slot=='description' and (role=='technical_summary' or SUMMARY.match(text(n))):
                 trace[-1]['summary_normalization']=summary_format(n,block,replace_text)
+            trace[-1]['prose_flow_normalization']=normalize_prose_flow(n,role,slot)
             format_p(n,role,slot)
             if role=='image':
                 # Source aspect ratio is preserved; never upscale or crop.

@@ -182,6 +182,45 @@ def paragraph_role(requested,value,slot,title):
     if requested in ('heading','title'):return 'body'
     return requested
 
+# A cached lastRenderedPageBreak is not an authored break. Do not flatten
+# runs: Word script properties, inline math and other objects must survive.
+FLOW_ROLES={'body','figure_analysis','technical_summary'}
+FLOW_BOUNDARY=re.compile(r'^(?:S\d+[、.．：:]|(?:实施例|对比例)\d+[:：]|图\d+为|表\d+|(?:技术领域|背景技术|发明内容|附图说明|具体实施方式)$)')
+def prose_breaks(p):
+    tokens=[]
+    def owned(node):
+        for child in node:
+            if child.tag==qn('p'):continue
+            yield child
+            yield from owned(child)
+    for n in owned(p):
+        if n.tag in (qn('t'),'{'+M+'}t'):tokens.append(('text',n,n.text or ''))
+        elif n.tag in (qn('br'),qn('cr')):tokens.append(('break',n,''))
+    result=[]
+    rich=any(p.find('.//'+tag,NS) is not None for tag in ('w:drawing','w:pict','w:object','w:tab','m:oMathPara','w:fldChar','w:fldSimple'))
+    for i,(kind,n,value) in enumerate(tokens):
+        if kind!='break':continue
+        before=''.join(x[2] for x in tokens[:i]).rstrip()
+        after=''.join(x[2] for x in tokens[i+1:]).lstrip()
+        typ=n.get(qn('type'),'textWrapping') if n.tag==qn('br') else 'carriageReturn'
+        safe=(not rich and typ in ('textWrapping','page','carriageReturn')
+              and n.get(qn('clear'),'none')=='none' and before.endswith(('，',',','、'))
+              and bool(after) and not FLOW_BOUNDARY.match(compact(after)))
+        result.append((n,typ,safe))
+    return result
+
+def normalize_prose_flow(p,role,slot):
+    if slot!='description' or role not in FLOW_ROLES:return []
+    breaks=prose_breaks(p)
+    literal=any('\n' in (n.text or '') or '\r' in (n.text or '') for n in p.iter(qn('t')))
+    if literal or any(not safe for _,_,safe in breaks):
+        raise ValueError('Ambiguous manual prose break: use source-bound natural paragraphs; do not drop text or objects')
+    before=visible(p);changes=[]
+    for node,typ,_ in breaks:
+        node.getparent().remove(node);changes.append({'removed_manual_break':typ,'reason':'continuous_prose_after_comma'})
+    assert visible(p)==before,'Prose flow normalization must preserve all text'
+    return changes
+
 def _on(node):return node is not None and node.get(qn('val'),'1') not in ('0','false','off')
 def bold_reader(styles):
     definitions={s.get(qn('styleId')):s for s in styles.findall('w:style',NS)} if styles is not None else {}
@@ -252,7 +291,7 @@ def evidence(root,styles,artifact_sha):
         # right=0 does not discard firstLineChars from the paragraph style.
         values={}
         default=styles.find('w:docDefaults/w:pPrDefault/w:pPr/w:'+name,NS) if styles is not None else None
-        if default is not None:values.update(default.attrib)
+        if default is not None:values.update(default.attrib);values.setdefault(qn('val'),'1')
         sid=p.find('w:pPr/w:pStyle',NS);sid=sid.get(qn('val')) if sid is not None else 'Normal';seen=set()
         inherited=[]
         while sid and sid not in seen:
@@ -261,9 +300,13 @@ def evidence(root,styles,artifact_sha):
             item=style.find('w:pPr/w:'+name,NS)
             if item is not None:inherited.append(item)
             base=style.find('w:basedOn',NS);sid=base.get(qn('val')) if base is not None else None
-        for item in reversed(inherited):values.update(item.attrib)
+        for item in reversed(inherited):
+            values.update(item.attrib)
+            if name in ('keepNext','keepLines','pageBreakBefore','widowControl'):values[qn('val')]=item.get(qn('val'),'1')
         direct=p.find('w:pPr/w:'+name,NS)
-        if direct is not None:values.update(direct.attrib)
+        if direct is not None:
+            values.update(direct.attrib)
+            if name in ('keepNext','keepLines','pageBreakBefore','widowControl'):values[qn('val')]=direct.get(qn('val'),'1')
         return values
     if field is not None:
         for i in range(field,end+1):
@@ -278,7 +321,40 @@ def evidence(root,styles,artifact_sha):
                 not (indent.get(qn('firstLineChars'))=='200' or qn('firstLineChars') not in indent and indent.get(qn('firstLine'))=='480') or
                 any(indent.get(qn(k),'0')!='0' for k in ('left','right','leftChars','rightChars','start','end','startChars','endChars','hanging','hangingChars'))):
                 issues.append({'body_index':i,'code':'description_body_paragraph_geometry'})
+    flow_checked=[]
+    figure_entries={i for i,_,_ in figure_description_entries(root)}
+    def prose(i):
+        n=nodes[i];value=compact(visible(n))
+        return (n.tag==qn('p') and bool(value) and value not in MAIN_HEADINGS
+                and value!=compact(title or '') and not CAPTION.fullmatch(value)
+                and i not in figure_entries and value not in ('制备工艺','配方','测试方法','结果分析') and not value.endswith(('：',':'))
+                and value!=BENEFIT_INTRO)
+    if field is not None:
+        for i in range(field,end+1):
+            n=nodes[i]
+            if n.tag!=qn('p'):continue
+            breaks=prose_breaks(n)
+            if breaks or any('\n' in (t.text or '') or '\r' in (t.text or '') for t in n.iter(qn('t'))):
+                issues.append({'body_index':i,'code':'description_manual_break','types':[x[1] for x in breaks]})
+            if not prose(i):continue
+            # Inline math is allowed to flow with the sentence. Standalone
+            # pictures/equations keep their separate object-specific layout.
+            if any(n.find('.//'+tag,NS) is not None for tag in ('w:drawing','w:pict','w:object','m:oMathPara')):continue
+            flow_checked.append(i)
+            for name in ('keepNext','keepLines','pageBreakBefore','widowControl'):
+                if prop(n,name).get(qn('val'),'0') not in ('0','false','off'):
+                    issues.append({'body_index':i,'code':'description_prose_forced_pagination','property':name})
+            # Suspected split paragraphs require source review; never merge
+            # across a table, heading, section or a new numbered step by guess.
+            j=i+1
+            while (j<=end and nodes[j].tag==qn('p') and not compact(visible(nodes[j]))
+                   and not any(nodes[j].find('.//'+tag,NS) is not None for tag in ('w:sectPr','w:drawing','w:pict','w:object','m:oMath'))):
+                j+=1
+            if (j<=end and n.find('w:pPr/w:sectPr',NS) is None
+                and compact(visible(n)).endswith(('，',',','、')) and prose(j)
+                and not FLOW_BOUNDARY.match(compact(visible(nodes[j])))):
+                issues.append({'body_index':i,'next_body_index':j,'code':'description_prose_split_after_comma'})
     examples=example_entries([{'text':visible(n),'kind':'p' if n.tag==qn('p') else 'tbl','location':i} for i,n in enumerate(nodes)])
     for row in examples:
         if row['split']:issues.append({'code':'example_introduction_split','key':row['key']})
-    return {'schema_version':1,'artifact_sha256':artifact_sha,'complete':True,'examples_contract_version':1,'examples':examples,'tables':table_count,'captions':captions,'benefit_intro_body_indices':intro,'plain_labels':labels,'figure_descriptions':descriptions,'issues':issues,'scope':'Source caption meanings, preserved technical facts, allowed headings and actual page pairing require independent semantic/visual review; screenshot annotations are not document elements'}
+    return {'schema_version':1,'artifact_sha256':artifact_sha,'complete':True,'examples_contract_version':1,'prose_flow_contract_version':1,'prose_flow_checked_body_indices':flow_checked,'examples':examples,'tables':table_count,'captions':captions,'benefit_intro_body_indices':intro,'plain_labels':labels,'figure_descriptions':descriptions,'issues':issues,'scope':'Source caption meanings, preserved technical facts, allowed headings and actual page pairing require independent semantic/visual review; screenshot annotations are not document elements'}
