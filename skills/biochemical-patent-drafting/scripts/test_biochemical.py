@@ -170,6 +170,38 @@ class BiochemicalBehaviorTests(unittest.TestCase):
         self.assertIsNotNone(reused)
         self.assertEqual(reused['inspection'],result['inspection']['inspection'])
 
+    def test_manual_check_cli_refreshes_then_reuses_current_inspection(self):
+        out=self.build();script=Path(__file__).with_name('bio_check.py')
+        command=[sys.executable,'-X','utf8',str(script),str(out),'--evidence',str(self.root/'evidence/evidence.json'),
+                 '--plan',str(self.root/'plan.json'),'--out',str(self.root/'manual.preflight.json'),
+                 '--inspection-cache',str(self.root/'manual-cache')]
+        for expected in ('miss','hit'):
+            result=subprocess.run(command,capture_output=True,text=True,encoding='utf-8')
+            self.assertEqual(result.returncode,0,result.stderr)
+            report=json.loads(result.stdout)
+            self.assertEqual(report['status'],'draft_not_accepted')
+            self.assertEqual(report['inspection']['cache_status'],expected)
+            self.assertEqual(read(report['preflight'])['artifact_sha256'],sha(out))
+            self.assertEqual(read(report['inspection']['inspection'])['review_status'],'structural_precheck_only')
+
+    def test_manual_combined_cli_requires_both_source_plan_and_evidence(self):
+        out=self.build();script=Path(__file__).with_name('bio_check.py')
+        result=subprocess.run([sys.executable,'-X','utf8',str(script),str(out),'--out',str(self.root/'missing.json'),
+                               '--inspection-cache',str(self.root/'missing-cache')],capture_output=True,text=True,encoding='utf-8')
+        self.assertEqual(result.returncode,2)
+        self.assertIn('requires --plan and --evidence',result.stderr)
+        self.assertFalse((self.root/'missing-cache').exists())
+
+    def test_combined_check_rejects_mutation_between_preflight_and_inspection(self):
+        from bio_check import check_file
+        out=self.build();original=inspect_docx.run_inspection
+        def changed(*args,**kwargs):
+            result=original(*args,**kwargs)
+            out.write_bytes(out.read_bytes()+b'changed-after-inspection')
+            return result
+        with patch.object(inspect_docx,'run_inspection',side_effect=changed),self.assertRaisesRegex(ValueError,'changed between mechanical checks'):
+            check_file(out,self.plan(),self.e,self.root/'mutated.preflight.json',self.root/'mutation-cache')
+
     def test_checked_failure_keeps_candidate_and_stops_before_full_inspection(self):
         from bio_author import check_generated
         out=self.build();d=Document(out);d.add_paragraph('TODO');d.save(out)

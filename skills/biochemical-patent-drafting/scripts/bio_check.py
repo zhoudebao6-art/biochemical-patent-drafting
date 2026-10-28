@@ -76,7 +76,29 @@ def inspect(path,plan=None,evidence=None):
     r['claim_structure']=claim_structure
     r['claim_source']=claim_source
     return r
+def check_file(path,plan,evidence,preflight,inspection_cache):
+    """Shared generated/edited-document checks; preserve failures before inspection."""
+    import inspect_docx
+    path=Path(path);preflight=Path(preflight)
+    report=inspect(path,plan,evidence);write(preflight,report)
+    if report['errors']:
+        raise ValueError('Draft failed mechanical preflight; see '+str(preflight))
+    inspection=inspect_docx.run_inspection(path,inspection_cache,'draft',True,True)
+    if sha(path)!=report['artifact_sha256']:
+        raise ValueError('Draft changed between mechanical checks')
+    return {'status':'draft_not_accepted','artifact':str(path.resolve()),
+            'preflight':str(preflight.resolve()),'inspection':inspection}
+
 def main():
-    p=argparse.ArgumentParser(); p.add_argument('docx'); p.add_argument('--plan'); p.add_argument('--evidence'); p.add_argument('--out',required=True); a=p.parse_args()
-    r=inspect(a.docx,read(a.plan) if a.plan else None,read(a.evidence) if a.evidence else None); write(a.out,r); print(__import__('json').dumps(r,ensure_ascii=False)); raise SystemExit(bool(r['errors']))
+    p=argparse.ArgumentParser();p.add_argument('docx');p.add_argument('--plan');p.add_argument('--evidence');p.add_argument('--out',required=True)
+    p.add_argument('--inspection-cache',help='Also refresh the standard case-local inspection cache after preflight passes')
+    a=p.parse_args()
+    if a.inspection_cache and not (a.plan and a.evidence):
+        p.error('--inspection-cache requires --plan and --evidence for source-bound checks')
+    plan=read(a.plan) if a.plan else None;evidence=read(a.evidence) if a.evidence else None
+    if a.inspection_cache:
+        result=check_file(a.docx,plan,evidence,a.out,a.inspection_cache)
+        print(__import__('json').dumps(result,ensure_ascii=False));return
+    r=inspect(a.docx,plan,evidence);write(a.out,r)
+    print(__import__('json').dumps(r,ensure_ascii=False));raise SystemExit(bool(r['errors']))
 if __name__=='__main__':main()

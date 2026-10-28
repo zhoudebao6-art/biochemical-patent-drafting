@@ -79,7 +79,7 @@
     {
       "file": "scripts/inspect_docx.py",
       "upstream_sha256": "84867d9e427dd126193e21dfe18273e9b371767f9c69fbb9cac2bce83ebab37b",
-      "fork_sha256": "88c4c4b8542d8f7f176586f18724e173ce6f0b13e3c5f001575012f834e87303",
+      "fork_sha256": "8058208bd075a9e9f1a838f5ee01762b52564e495e6072c15d2b22892182a324",
       "byte_identical": false
     },
     {
@@ -109,12 +109,13 @@
     "v1.1.3: separate technical refinement/inheritance from global noun-first-use wording; require source-bound declared dependency needs, validate actual full paths per alternative, reject missing or unexplained inherited restrictions, and keep wrong dependent-object heads as errors. Expose actual paths in centralized claims findings. No new workflow layer; semantic choice remains independent review.",
     "v1.1.4: source-bound protection objects and candidate order, source-preserving natural claim paragraphs, single-paragraph dependent claims, numeric-unit token guard and bounded terminal transition. Reuse existing author/check modules and 29 rules; no new workflow layer or paragraph plan schema. Five real cases recovered 50 claims/72 paragraphs from deliberately malformed layout inputs.",
     "v1.2.0: compact source evidence retains identity, locators and rich-object markers while omitting duplicate body XML; bio_check uses one immutable byte snapshot, shared parsed XML and a final mutation guard; bio_author --check combines generation and existing mechanical checks with reusable same-hash inspection cache, without accepting drafts; new snapshots exclude maintenance-only math_fragments; malformed XML is a controlled handoff source error. Old CLI/evidence, all 29 rules, three pools, independent review, frozen snapshots and real-page acceptance remain unchanged.",
-    "v1.2.1: new batches use draft/review/revise limits 16/8/8 and total worker ceiling 32, with an in-flight case buffer of 64. Actual capacity remains explicit and may be lower. Existing scheduler/runtime code and frozen batches are unchanged; rule library v13 changes only BATCH-01, retaining 29 active rules. Scheduling regression is synthetic, not a 32-worker throughput measurement."
+    "v1.2.1: new batches use draft/review/revise limits 16/8/8 and total worker ceiling 32, with an in-flight case buffer of 64. Actual capacity remains explicit and may be lower. Existing scheduler/runtime code and frozen batches are unchanged; rule library v13 changes only BATCH-01, retaining 29 active rules. Scheduling regression is synthetic, not a 32-worker throughput measurement.",
+    "v1.3.0: reuse bio_claims.collect in the inspection path; share source-bound preflight and standard inspection through bio_check.check_file for generated and manually edited drafts; retain check_generated and standalone CLI compatibility; remove two uncalled upstream helpers; consolidate current CLI/cache/recovery instructions. Rules v13, all 29 active rules, 16/8/8 pools, frozen batches and independent acceptance remain unchanged."
   ],
   "biochemical_components": [
     {
       "file": "scripts/bio_author.py",
-      "sha256": "00d94b3ae9c3052e3e12cac2580895913614d24fbedf0d111e2ef82c289cf58e"
+      "sha256": "420083a4a1b47b903a5b2703c74d3db5a7e4b70e1982d8830624ba8aa891c713"
     },
     {
       "file": "scripts/bio_prepare.py",
@@ -122,7 +123,7 @@
     },
     {
       "file": "scripts/bio_check.py",
-      "sha256": "43f0003e925787217ea70c11fcabd6d818c48f431baa0efba79f7d9e3e1d14eb"
+      "sha256": "e8c1ba01e8291a794f590f40cbd5c700c5d3aa15a00338b1e874933400270269"
     },
     {
       "file": "scripts/bio_claims.py",
@@ -134,7 +135,7 @@
     },
     {
       "file": "scripts/bio_inspection.py",
-      "sha256": "6eaf58edddb12513252c2ccf861c3d8e4e04f1012a10a161865e093a8ea85a44"
+      "sha256": "c96b0095f1d356d95fe193d623150b288888ce2534898a095bd58e723f982259"
     },
     {
       "file": "scripts/bio_layout.py",

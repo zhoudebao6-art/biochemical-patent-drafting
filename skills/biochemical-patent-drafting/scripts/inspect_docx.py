@@ -725,39 +725,6 @@ def formula_prose_paragraph_evidence(paragraph, part, number, object_ids, previo
     return out
 
 
-def wording_evidence(body, claims):
-    """Locate edits by scope; never replace titles or certify antecedents."""
-    rows = []
-    claim_by_p = {p: c['number'] for c in claims for p in c['paragraphs']}
-    for p in body:
-        text = p['text']
-        claim = claim_by_p.get(p['p'])
-        for m in re.finditer('从而|一一', text):
-            rows.append({'paragraph': p['p'], 'offset': m.start(), 'text': m[0],
-                         'context': text[max(0,m.start()-24):m.end()+32], 'claim': claim,
-                         'category': 'global_causal_connector' if m[0]=='从而' else 'global_yiyi_modifier_candidate',
-                         'replacement': None, 'status': 'rephrase_preserving_causality_and_cardinality_not_blind_deletion'})
-        for m in re.finditer('本技术项目|本方案|本方法|本申请|装置|组件|引擎', text):
-            token = m[0]
-            rows.append({'paragraph': p['p'], 'offset': m.start(), 'text': token,
-                         'context': text[max(0,m.start()-24):m.end()+32], 'claim': claim,
-                         'category': 'self_reference' if token.startswith('本') else 'module_term',
-                         'replacement': '本发明' if token.startswith('本') else '模块',
-                         'status': 'review_scope_and_protected_name_before_edit'})
-        if claim is not None:
-            # 所有“较/等”保留线索，比较/等于/等级等完整词由语义判别排除。
-            for m in re.finditer('邻近的?|较|等', text):
-                token = m[0]
-                rows.append({'paragraph': p['p'], 'offset': m.start(), 'text': token,
-                             'context': text[max(0,m.start()-24):m.end()+32], 'claim': claim,
-                             'category': 'claim_near' if token.startswith('邻近') else 'claim_qualifier_or_enumeration',
-                             'replacement': '相邻' if token.startswith('邻近') else None,
-                             'status': 'semantic_classification_required_not_character_deletion'})
-    contract = document_contract_evidence(body)
-    rows.extend(dict(hit, claim=None, category='description_claim_word', replacement=None,
-                     status='rewrite_as_description_preserving_source') for hit in contract['description_word_hits'])
-    return {'occurrences': rows,
-            'boundary': 'Claims-only neighbor/comparative qualifier/open enumeration rules do not apply elsewhere. Module terms require protected names/titles to remain unchanged. This is read-only candidate evidence; 等于/相等/等级 and 比较 are not automatically deleted. Check images/fields not represented as ordinary text separately.'}
 
 
 def document_contract_evidence(body):
@@ -1159,48 +1126,6 @@ def benefit_introduction(text):
     return bool(re.fullmatch(r'(?:与现有技术相比[，,])?本发明的有益效果(?:在于|如下)?[：:]?|有益效果[：:]?',value))
 
 
-def benefit_numbering_evidence(body):
-    """Locate the invention's effect paragraphs; never rewrite text or math."""
-    result={'schema_version':1,'scope_resolved':False,'items':[], 'formula_paragraphs':[], 'issues':[],
-            'boundary':'Literal paragraph ordinals only; claim-family support and final display still need independent review.'}
-    direct=[p for p in body if p.get('body_direct')]
-    headings=[p for p in direct if p['text'].strip()=='发明内容']
-    if len(headings)!=1:
-        result['issues'].append({'code':'invention_heading_unresolved'});return result
-    start=headings[0]['p']
-    ends=[p['p'] for p in direct if p['p']>start and p['text'].strip() in {'附图说明','具体实施方式'}]
-    if not ends:
-        result['issues'].append({'code':'invention_end_unresolved'});return result
-    end=min(ends)
-    leads=[p for p in direct if start<p['p']<end and benefit_introduction(p['text'])]
-    if len(leads)!=1:
-        result['issues'].append({'code':'benefit_introduction_unresolved'});return result
-    lead=leads[0]['p'];result.update(scope_resolved=True,introduction_paragraph=lead,end_paragraph=end)
-    for p in body:
-        if not lead<p['p']<end:continue
-        text=p['text'].strip()
-        if not text and not p.get('formulas') and not p.get('media'):continue
-        locator={'part':'word/document.xml','paragraph':p['p'],
-                 'path':f'paragraph[{p["p"]}]/visible_text','offset':0,'text':text}
-        if not p.get('body_direct') or p.get('media'):
-            result['issues'].append(dict(locator,code='effect_container_requires_rewrite_or_review'));continue
-        # A source formula on its own remains attached to the preceding effect;
-        # never turn its operands, indices or source equation number into a list number.
-        if p.get('formulas') and (p.get('layout_evidence') or {}).get('math_only_text_candidate'):
-            result['formula_paragraphs'].append(locator)
-            if not result['items']:result['issues'].append(dict(locator,code='formula_without_effect'))
-            continue
-        match=re.fullmatch(r'([1-9][0-9]*)\.([^\s].*)',text,re.S)
-        number=int(match[1]) if match else None
-        row=dict(locator,number=number,text=text,expected_number=len(result['items'])+1)
-        result['items'].append(row)
-        if not match:result['issues'].append(dict(locator,code='missing_or_noncanonical_effect_number'))
-        elif number!=row['expected_number']:
-            result['issues'].append(dict(locator,code='nonconsecutive_effect_number'))
-        if (p.get('numbering_applied') or {}).get('numId') not in (None,'0'):
-            result['issues'].append(dict(locator,code='native_list_label_requires_literal_conversion'))
-    if not result['items']:result['issues'].append({'code':'empty_benefit_group'})
-    return result
 
 
 def page_flow_evidence(result, body, claims):

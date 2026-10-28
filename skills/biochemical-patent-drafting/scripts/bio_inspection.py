@@ -38,16 +38,10 @@ def precheck(result,kind):
         if n is None:add('DRAFT_SECTION','Missing description heading: '+h)
     field=anchors['技术领域'] or len(body)+1
     claim_ps={p['p'] for p in body if any('权利要求书' in re.sub(r'\s+','',h) for h in p.get('section_headers',[]))}
-    claims=[]
-    for p in body:
-        if p['p']>=field:break
-        if claim_ps and p['p'] not in claim_ps:continue
-        mt=re.match(r'^\s*(\d+)、(.*)',p['text'])
-        breaks=int('break_or_tab' in p.get('content_evidence',{}).get('objects',[]))
-        if mt:claims.append({'number':int(mt[1]),'p':p['p'],'text':p['text'],'paragraphs':[p['p']],'paragraph_texts':[p['text']],'manual_breaks':breaks})
-        elif claims and (p['text'].strip() or breaks):
-            claims[-1]['text']+='\n'+p['text'];claims[-1]['paragraphs'].append(p['p']);claims[-1]['paragraph_texts'].append(p['text'])
-            claims[-1]['manual_breaks']+=breaks
+    from bio_claims import collect,analyze
+    claims=collect({'text':p['text'],'p':p['p'],
+                    'manual_breaks':int('break_or_tab' in p.get('content_evidence',{}).get('objects',[]))}
+                   for p in body if p['p']<field and (not claim_ps or p['p'] in claim_ps))
     nums=[c['number'] for c in claims]
     if nums!=list(range(1,len(nums)+1)) or not nums:add('CLAIM_NUMBERS','Claims absent or not contiguous')
     for c in claims:
@@ -56,7 +50,6 @@ def precheck(result,kind):
         c['antecedent_count_evidence']={'literal_count':c['text'].count('所述'),'required_valid_minimum':None,'status':'verify_complete_noun_and_actual_ancestor_chain_no_count_threshold'}
         if any(n<1 or n>=c['number'] or n not in nums for n in parents):add('CLAIM_REFERENCE','Invalid future/self/missing parent',f"P{c['p']}")
         if '，其特征在于，' not in c['text'].split('\n')[0]:add('BIO_CLAIM_WORDING','Use exact fixed claim head punctuation',f"P{c['p']}")
-    from bio_claims import analyze
     structure=analyze(claims)
     structure['artifact_sha256']=result['sha256']
     result['biochemical_claims_evidence']=structure

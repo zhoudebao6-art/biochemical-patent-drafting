@@ -1,44 +1,63 @@
 {
-  "version": "1.2.1",
+  "version": "1.3.0",
   "edition": "public-share",
   "date": "2026-10-28",
+  "rule_version": 13,
   "file_count": 140,
-  "archive": "biochemical-patent-drafting-v1.2.1.zip",
-  "archive_sha256": "a91ea6d7da170d2ff3e9c235dd3d5725ac987df5d2ef33737097758e72902afd",
-  "source_release_zip_sha256": "551fe5a130296ee29ada2ff5969a936188b2b215228ecc1303e1d5c94ed0d732",
-  "source_manifest_sha256": "4b7cdf307d2853f44870ff9deebc75c01321f64a2395f9c432932bb68f1e5a75",
+  "archive": "biochemical-patent-drafting-v1.3.0.zip",
+  "archive_sha256": "62d2373eb4855fd577ebcb9183b9a327d5441203fc24c6bb2adad012119d1b75",
+  "source_release_zip_sha256": "c574da0ad48125d54de41cc614756792307fb45868f296cc17a0f281a81e0ef4",
+  "source_manifest_sha256": "ee5e99ac90f300b88f05e20a64c5c5ffbc84087248a4538c48757e547ecd1351",
   "synced_candidate_changes": [
     "README.md",
     "references/architecture-provenance.json",
-    "references/batch-policy.json",
-    "references/batch-workflow.md",
+    "references/authoring-toolkit.md",
     "references/cli-workers.md",
-    "references/efficiency.md",
     "references/fast-execution.md",
-    "references/rules.json",
-    "references/three-stage-pools.md",
-    "references/worker-standard-coverage.json",
-    "scripts/test_model_policy.py",
-    "scripts/test_three_stage_pools.py",
-    "SKILL.md"
+    "scripts/bio_author.py",
+    "scripts/bio_check.py",
+    "scripts/bio_inspection.py",
+    "scripts/inspect_docx.py",
+    "scripts/test_biochemical.py"
   ],
   "new_machine_setup_required": true,
   "protected_public_materials_unchanged": true,
   "checks": {
-    "regression_tests": {
-      "initial-tests.log": 47,
-      "remaining-tests.log": 107
+    "total_tests": 162,
+    "test_groups": {
+      "biochemical-tests.log": 103,
+      "integration-tests.log": 59
     },
-    "total_tests": 154,
-    "production_runtime_unchanged": true,
-    "other_28_rules_unchanged": true,
     "source_install_zip_identity": true,
+    "rules_policy_template_runtime_unchanged": true,
     "softtech_skill_unchanged": true,
+    "source_and_generated_equivalence": true,
     "paid_model_calls": 0,
-    "throughput_measurement": false,
-    "public_targeted_tests": 12,
-    "public_runtime_unconfigured_and_rejected": true,
-    "zip_crc_and_all_file_hashes": "passed"
+    "public_targeted_tests": 20,
+    "zip_crc_and_all_file_hashes": "passed",
+    "public_runtime_unconfigured_and_rejected": true
+  },
+  "metrics": {
+    "reports_compared": 15,
+    "claims": 50,
+    "claim_paragraphs": 72,
+    "docs_characters_before": 10857,
+    "docs_characters_after": 5575,
+    "production_code_lines_before": 11542,
+    "production_code_lines_after": 11476,
+    "removed_uncalled_functions": [
+      {
+        "name": "wording_evidence",
+        "lines": 33
+      },
+      {
+        "name": "benefit_numbering_evidence",
+        "lines": 42
+      }
+    ],
+    "manual_check_commands_before": 2,
+    "manual_check_commands_after": 1,
+    "scope": "Maintenance equivalence only; no semantic or page acceptance and no throughput measurement."
   },
   "files": [
     {
@@ -55,15 +74,15 @@
     },
     {
       "path": "README.md",
-      "sha256": "c763492e61ce246963309568705a57c99885d14c0b85e604a3e02285e4597cd4"
+      "sha256": "d435967adabede1f33afc5eb3ace607a152fb6dc1c3c6d086096ce88783fd164"
     },
     {
       "path": "references/architecture-provenance.json",
-      "sha256": "bfb6f8e356d642ae1a1f883ff4d5cc83a3fbe143301cf2c6d956f1b067196491"
+      "sha256": "ffa7686ec3711760bba10935a84de140f8e5cdda0e52eb69b998022152d6befc"
     },
     {
       "path": "references/authoring-toolkit.md",
-      "sha256": "a36b07b4e18ac80a931ea4b7642060b93947951c07e0f4766b97afecbdd19453"
+      "sha256": "5c2843fe8d0ffa99e3a19aec9712e562b77822a41ad67dcc235e6304ac8241a4"
     },
     {
       "path": "references/background-user-requirement.txt",
@@ -87,7 +106,7 @@
     },
     {
       "path": "references/cli-workers.md",
-      "sha256": "29d5cb127edc61c7c9564c54d197461a4716ab686e9e2b9257ff5a12416a528c"
+      "sha256": "b10f0b6abe63924366a4173899eb52be6802d87db1066c0cb15e28f68e976d1a"
     },
     {
       "path": "references/data-contracts.md",
@@ -103,7 +122,7 @@
     },
     {
       "path": "references/fast-execution.md",
-      "sha256": "c337bbf81e0e56fbf6a1dc21bc1ea74ca85331f209fd506559d358a421fa9b2a"
+      "sha256": "0d83958e8d642870b6bce3087dccdcc0e346ab30311242b9fb2f7c93dee606de"
     },
     {
       "path": "references/figure-ending-user-requirement.txt",
@@ -203,7 +222,7 @@
     },
     {
       "path": "scripts/bio_author.py",
-      "sha256": "00d94b3ae9c3052e3e12cac2580895913614d24fbedf0d111e2ef82c289cf58e"
+      "sha256": "420083a4a1b47b903a5b2703c74d3db5a7e4b70e1982d8830624ba8aa891c713"
     },
     {
       "path": "scripts/bio_background.py",
@@ -211,7 +230,7 @@
     },
     {
       "path": "scripts/bio_check.py",
-      "sha256": "43f0003e925787217ea70c11fcabd6d818c48f431baa0efba79f7d9e3e1d14eb"
+      "sha256": "e8c1ba01e8291a794f590f40cbd5c700c5d3aa15a00338b1e874933400270269"
     },
     {
       "path": "scripts/bio_claims.py",
@@ -227,7 +246,7 @@
     },
     {
       "path": "scripts/bio_inspection.py",
-      "sha256": "6eaf58edddb12513252c2ccf861c3d8e4e04f1012a10a161865e093a8ea85a44"
+      "sha256": "c96b0095f1d356d95fe193d623150b288888ce2534898a095bd58e723f982259"
     },
     {
       "path": "scripts/bio_layout.py",
@@ -295,7 +314,7 @@
     },
     {
       "path": "scripts/inspect_docx.py",
-      "sha256": "88c4c4b8542d8f7f176586f18724e173ce6f0b13e3c5f001575012f834e87303"
+      "sha256": "8058208bd075a9e9f1a838f5ee01762b52564e495e6072c15d2b22892182a324"
     },
     {
       "path": "scripts/invention_contract.py",
@@ -399,7 +418,7 @@
     },
     {
       "path": "scripts/test_biochemical.py",
-      "sha256": "cda7da5d00bf7402840a399dc38ea6bb137eb4658fdeee45c99243786b84607b"
+      "sha256": "587c49c82db724f01d92f7fd026b65ceb4712ac54ded59aac7a5f519af8be445"
     },
     {
       "path": "scripts/test_claim_wording.py",
