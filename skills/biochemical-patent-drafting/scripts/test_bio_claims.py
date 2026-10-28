@@ -17,21 +17,21 @@ def fixture(groups=3):
                    'S1、混合组分甲；','S2、分离并获得所述材料A。',
                    '具体实施中，解释不生成新权项。',
                    '进一步地，在上述技术方案中，步骤S1使用搅拌器。']
-        texts += ['3、一种权利要求1至2任一项所述的材料A的制备方法，其特征在于，包括以下步骤：',
+        texts += ['3、一种根据权利要求1至2任一项所述的材料A的制备方法，其特征在于，包括以下步骤：',
                   'S1、混合组分甲；','S2、分离并获得所述材料A。',
                   '4、根据权利要求3所述的材料A的制备方法，其特征在于，步骤S1使用搅拌器。']
         mapping += [{'number':3,'kind':'independent','parent':None,'group':3,'object':'一种材料A的制备方法',
-                     'head':'一种权利要求1至2任一项所述的材料A的制备方法','reference_claims':[1,2],
+                     'head':'一种根据权利要求1至2任一项所述的材料A的制备方法','reference_claims':[1,2],
                      'source_body_indices':[4,5,6]},
                     {'number':4,'parent':3,'group':3,'object':'材料A的制备方法','source_body_indices':[8],
                      'dependency_reason':'继承方法组S1混合操作'}]
     if groups>=3:
         source += ['本发明还提供了材料A的应用，其特征在于，用于示例检测。',
                    '进一步地，在上述技术方案中，所述示例检测使用标签。']
-        texts += ['5、一种权利要求1至2任一项所述的材料A的应用，其特征在于，用于示例检测。',
+        texts += ['5、一种根据权利要求1至2任一项所述的材料A的应用，其特征在于，用于示例检测。',
                   '6、根据权利要求5所述的材料A的应用，其特征在于，所述示例检测使用标签。']
         mapping += [{'number':5,'kind':'independent','parent':None,'object':'一种材料A的应用',
-                     'head':'一种权利要求1至2任一项所述的材料A的应用','reference_claims':[1,2],'source_body_indices':[9]},
+                     'head':'一种根据权利要求1至2任一项所述的材料A的应用','reference_claims':[1,2],'source_body_indices':[9]},
                     {'number':6,'parent':5,'object':'材料A的应用','source_body_indices':[10],
                      'dependency_reason':'继承应用组示例检测对象'}]
     needs={2:(1,2,'组分甲','所述组分甲为颗粒'),4:(3,5,'混合组分甲','步骤S1使用搅拌器'),6:(5,9,'用于示例检测','所述示例检测使用标签')}
@@ -362,7 +362,7 @@ class IndependentReferenceTests(unittest.TestCase):
 
     def test_third_independent_cannot_skip_reference(self):
         claims,plan,e=fixture(3)
-        claims[4]['text']=claims[4]['text'].replace('权利要求1至2任一项所述的','')
+        claims[4]['text']=claims[4]['text'].replace('根据权利要求1至2任一项所述的','')
         plan['claim_map'][4]['head']='一种材料A的应用'
         plan['claim_map'][4]['reference_claims']=[]
         with self.assertRaisesRegex(ValueError,'Later independent claim must reference prior claims 5'):
@@ -386,8 +386,8 @@ class IndependentReferenceTests(unittest.TestCase):
     def test_three_objects_use_actual_ranges_and_separate_groups(self):
         claims,plan,e=fixture(3)
         for i in (2,4):
-            claims[i]['text']=claims[i]['text'].replace('一种权利要求1至2任一项','一种根据权利要求1-2任意一项')
-            plan['claim_map'][i]['head']=plan['claim_map'][i]['head'].replace('一种权利要求1至2任一项','一种根据权利要求1-2任意一项')
+            claims[i]['text']=claims[i]['text'].replace('一种根据权利要求1至2任一项','一种根据权利要求1-2任意一项')
+            plan['claim_map'][i]['head']=plan['claim_map'][i]['head'].replace('一种根据权利要求1至2任一项','一种根据权利要求1-2任意一项')
         r=validate_plan(claims,plan,e)['structure']
         self.assertEqual(r['independent_count'],3)
         self.assertEqual([c['group'] for c in r['claims']],[1,1,3,3,5,5])
@@ -427,6 +427,40 @@ class IndependentReferenceTests(unittest.TestCase):
         for ref in ('2','3','1-3任意一项'):
             claims=[self.claim(1,'一种材料A'),self.claim(2,f'一种根据权利要求{ref}所述材料A的应用')]
             self.assertTrue(any('Invalid claim parent/reference' in s for s in analyze(claims)['issues']))
+
+
+class CompleteReferenceWordingTests(unittest.TestCase):
+    def test_missing_genju_cannot_pass_even_when_plan_matches(self):
+        for count,index in ((2,2),(3,4)):
+            claims,plan,e=fixture(count)
+            claims[index]['text']=claims[index]['text'].replace('一种根据权利要求','一种权利要求')
+            plan['claim_map'][index]['head']=plan['claim_map'][index]['head'].replace('一种根据权利要求','一种权利要求')
+            before=copy.deepcopy(claims)
+            with self.subTest(group=count),self.assertRaisesRegex(ValueError,'complete fixed prefix'):
+                validate_plan(claims,plan,e)
+            self.assertEqual(claims,before)
+
+    def test_fixed_prefix_must_not_lose_or_substitute_characters(self):
+        for prefix in ('一种','一种根','一种据','种根据','一根据','一种依照'):
+            claims,_,_=fixture(2)
+            claims[2]['text']=claims[2]['text'].replace('一种根据权利要求',prefix+'权利要求')
+            with self.subTest(prefix=prefix):
+                self.assertTrue(any('complete fixed prefix' in x for x in analyze(claims)['issues']))
+
+    def test_correct_method_preserves_step_text_and_reference_identity(self):
+        claims,plan,e=fixture(2);before=copy.deepcopy(claims)
+        r=validate_plan(claims,plan,e)['structure'];method=r['claims'][2]
+        self.assertFalse(r['issues']);self.assertEqual(claims,before)
+        self.assertEqual(method['kind'],'independent');self.assertEqual(method['parents'],[])
+        self.assertEqual(method['reference_claims'],[1,2]);self.assertEqual(method['paragraph_layout']['actual_count'],3)
+        self.assertEqual(r['claims'][3]['inheritance_paths'],[[4,3]])
+
+    def test_single_reference_also_requires_complete_prefix(self):
+        claims=[{'number':1,'text':'1、一种材料A，其特征在于，包括甲。'},
+                {'number':2,'text':'2、一种权利要求1所述材料A的应用，其特征在于，用于检测。'}]
+        self.assertTrue(any('complete fixed prefix' in x for x in analyze(claims)['issues']))
+        claims[1]['text']=claims[1]['text'].replace('一种权利要求','一种根据权利要求')
+        self.assertFalse(analyze(claims)['issues'])
 
 
 if __name__=='__main__':unittest.main()

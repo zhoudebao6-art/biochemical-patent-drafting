@@ -176,6 +176,8 @@ def analyze(claims, mapping=None):
         if kind == 'independent':
             obj = REF.sub('', compact(head)).replace('根据','').replace('所述的','')
         if kind == 'independent':
+            if referenced and not re.match(r'^一种根据' + REF.pattern, compact(head)):
+                errors.append(f'Independent reference head requires complete fixed prefix 一种根据权利要求 {n}')
             related=related_object_claims(obj,by_number)
             # User drafting convention: every independent item after the first
             # needs an explicit earlier reference, irrespective of its category.

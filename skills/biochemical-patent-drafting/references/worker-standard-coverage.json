@@ -4,9 +4,9 @@
     "mapping-writing.md": "7b62c07819250aacb5b90fdbc31a6547ce83d0feebc85e5bed4b058a08e035c8",
     "chemistry-data.md": "e9b2cb39421a108db5f74090b1798baad270614c321e55c50a6588e6a3059311",
     "format.md": "e69cb5dc93c87f66b33715b3677757ceb54ba03ff48e0227d594ac70cb5883e8",
-    "plan-schema.md": "281826397464971802958f8e1055badc1acb90c51f6035166bbace00053a9e2a",
-    "worker-standard.md": "ceb137b52aa58b80e2cd794f51bccf7d82ef64a881284663d7ee85c9f6c9595f",
-    "claims-patterns.md": "58b27b339048982b1730fbf156e3b8d2f48c1cb1819382fe9abeccd2f35314ae"
+    "plan-schema.md": "bf0bc5d7a069b2304ce2a7186f6d8b5920411ce2b5071f25d9d47ea20162fd9f",
+    "worker-standard.md": "35d38b6a334d7d0f2052ed14bb674e6f0f7b17248f59a071b4e24fef7045752f",
+    "claims-patterns.md": "19f7a1f8f1619aa944dcf0a499c3e785924a39259de06dbd721e92585f595b30"
   },
-  "reviewed_scope": "Rules v14: all later independent claims require prior references; source-specific ranges, independent object groups and dependent parent chains remain separate."
+  "reviewed_scope": "Rules v15: complete mandatory prefix for referenced independent claims; no missing genju characters; source-specific ranges and separate dependency chains preserved."
 }
