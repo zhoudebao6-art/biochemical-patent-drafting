@@ -9,13 +9,13 @@ v5.0新增frozen_stage_packet_v1准备模式，见[快速执行](fast-execution.
 按batch-workflow完成scan/selection/init后，由总控使用文档Python运行：
 
 ```text
-python scripts/cli_pool.py run --manifest 批次manifest.json --controller 本批控制器标识 --workers 12
+python scripts/cli_pool.py run --manifest 批次manifest.json --controller 本批控制器标识 --workers 32
 python scripts/cli_pool.py status --manifest 批次manifest.json
 ```
 
 `run`是实际执行命令，会消费当前CLI登录账户的模型额度。用户无需手动逐案输入命令；总控保持运行并观察完成/交付事件。需要指定版本时追加`--executable 原生codex.exe绝对路径`。自动探测PATH中的原生exe或本机`LOCALAPPDATA/OpenAI/Codex/bin/*/codex.exe`的最新文件；不经cmd包装器或shell拼接启动。
 
-版本35默认配置6个初稿、3个只读复查、3个独立修改worker，总目标12，在制最多24。上例--workers 12仅在本批确有12个可用名额时使用，主控先核实际CLI账户与机器资源；不足时填写更低值。新三池省略--workers会拒绝启动，旧批次省略时保持历史默认4。reserved与bound、CLI与本批collaboration均共同占槽，不跨池借到超限。已有4路实测不证明12路容量，状态和派发记录才说明实际运行数；不在普通批次额外付费探针。
+版本35默认配置16个初稿、8个只读复查、8个独立修改worker，总目标32，在制最多64；64GB内存建议最多同时开32个CLI任务。上例--workers 32仅在本批确有32个可用名额时使用，主控先核实际CLI账户与机器资源；不足时填写更低值。新三池省略--workers会拒绝启动，旧批次省略时保持历史默认4。reserved与bound、CLI与本批collaboration均共同占槽，不跨池借到超限。已有4路实测不证明32路容量，状态和派发记录才说明实际运行数；不在普通批次额外付费探针。
 
 版本36新批次由stage_pool_runner维持三个独立准备/收稿通道及独立单写交付通道。初稿完成即排review，fix_required即排revise，修订后回review新会话重验；通过稿即排桌面交付，有空闲名额立即接手。长I/O在主清单锁外，单案短事务合并，accepted不阻塞reserve；准备中占槽，完整证据门禁不变。旧v29/v35无pool_execution标记时保留单件收取、交付后补位及故障drain。具体规则见[三池执行](three-stage-pools.md)。
 

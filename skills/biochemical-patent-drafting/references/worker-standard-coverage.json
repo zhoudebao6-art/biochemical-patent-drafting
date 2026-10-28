@@ -8,5 +8,5 @@
     "worker-standard.md": "42fa3864b8315ac2c5cc57e65e269894800aa1076f6de1163eca4b3e7bec170a",
     "claims-patterns.md": "bba123d6b6fdc86f6cd5f84c57f49207c50be888d532098be46d409c42e423de"
   },
-  "reviewed_scope": "Rules v12: five-source full claim writing; source object/order/limitations and physical paragraph boundaries; source-bound inherited needs and prior presentation rules retained. Public edition retains anonymous reference evidence; hashes bind this public copy."
+  "reviewed_scope": "Rules v13 (only controller concurrency changed): five-source full claim writing; source object/order/limitations and physical paragraph boundaries; source-bound inherited needs and prior presentation rules retained. Public edition retains anonymous reference evidence; hashes bind this public copy."
 }

@@ -174,6 +174,90 @@ class ThreePoolPlanTests(unittest.TestCase):
                 self.plan(synthetic_manifest(['pending'], [stage] * (limit + 1)))
 
 
+
+
+class CurrentDefaultPoolTests(unittest.TestCase):
+    """Load the shipped policy, with no paid CLI or production cases."""
+    def manifest(self, statuses=(), active=()):
+        result = synthetic_manifest(statuses, active)
+        result['policy'] = b.read(Path(__file__).resolve().parent.parent / 'references/batch-policy.json')
+        queue.validate_policy(result['policy'])
+        return result
+
+    def plan(self, manifest, capacity=32, **kwargs):
+        with patch.object(queue, 'verify_case'):
+            return queue.plan_manifest(manifest, capacity, **kwargs)
+
+    def fill(self, manifest, capacity):
+        selected = Counter()
+        for index in range(capacity):
+            result = self.plan(manifest, capacity, first_only=True)
+            if result['action'] != 'reserve':
+                break
+            row = result['ready'][0]
+            case = queue.case_by_id(manifest, row['case_id'])
+            attempt = {'id': f'current-{index}', 'stage': row['stage'],
+                       'state': 'reserved' if index % 2 else 'bound'}
+            case['active_attempt'] = attempt['id']
+            case['attempts'].append(attempt)
+            selected[row['stage']] += 1
+        return selected, self.plan(manifest, capacity)
+
+    def test_current_profile_fills_exactly_16_8_8_and_stops_at_32(self):
+        manifest = self.manifest(['pending'] * 40 + ['drafted'] * 16 + ['fix_required'] * 16)
+        selected, result = self.fill(manifest, 32)
+        self.assertEqual(dict(selected), {'draft': 16, 'review': 8, 'revise': 8})
+        self.assertEqual(result['active_workers'], 32)
+        self.assertEqual(result['action'], 'wait')
+        with self.assertRaises(b.BatchError):
+            self.plan(manifest, 33)
+
+    def test_draft_only_startup_stops_at_16_without_borrowing(self):
+        selected, result = self.fill(self.manifest(['pending'] * 40), 32)
+        self.assertEqual(dict(selected), {'draft': 16})
+        self.assertEqual(result['action'], 'wait')
+
+    def test_lower_actual_capacity_still_limits_all_three_pools(self):
+        for capacity in (1, 7, 12, 31):
+            with self.subTest(capacity=capacity):
+                manifest = self.manifest(['pending'] * 32 + ['drafted'] * 16 + ['fix_required'] * 16)
+                selected, result = self.fill(manifest, capacity)
+                self.assertEqual(sum(selected.values()), capacity)
+                self.assertEqual(result['active_workers'], capacity)
+                self.assertEqual(result['action'], 'wait')
+                self.assertTrue(all(selected[s] <= limit for s, limit in manifest['policy']['stage_pools'].items()))
+
+    def test_full_pool_does_not_block_or_borrow_other_pools(self):
+        for stage, limit in {'draft': 16, 'review': 8, 'revise': 8}.items():
+            with self.subTest(stage=stage):
+                result = self.plan(self.manifest(['pending', 'drafted', 'fix_required'], [stage] * limit))
+                self.assertEqual({r['stage'] for r in result['ready']}, {'draft', 'review', 'revise'} - {stage})
+
+    def test_inflight_buffer_64_blocks_only_new_drafts(self):
+        result = self.plan(self.manifest(['drafted'] * 32 + ['fix_required'] * 32 + ['pending'] * 4))
+        self.assertEqual(result['in_flight_cases'], 64)
+        self.assertEqual({r['stage'] for r in result['ready']}, {'review', 'revise'})
+
+    def test_initial_review_and_recheck_share_eight_slots(self):
+        manifest = self.manifest(['revised', 'drafted'], ['review'] * 8)
+        self.assertEqual(self.plan(manifest)['action'], 'wait')
+
+    def test_new_batch_freezes_current_policy_and_rules(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / 'input'
+            source.mkdir()
+            fixtures.docx(source / 'case.docx', 'synthetic source')
+            selection = {'projects': [{'title': 'current policy fixture', 'source_files': ['case.docx'],
+                                       'primary_source': 'case.docx'}]}
+            path = queue.init(source, root / 'work', selection, root / 'desktop')
+            manifest = b.read(path)
+            self.assertEqual(manifest['policy']['stage_pools'], {'draft': 16, 'review': 8, 'revise': 8})
+            self.assertEqual(manifest['policy']['concurrency']['target_workers'], 32)
+            self.assertEqual(manifest['policy']['concurrency']['max_in_flight_cases'], 64)
+            self.assertEqual(b.read(path.parent / 'rules.snapshot.json')['version'], 13)
+            self.assertEqual(queue.reserve(path, 32)['attempt']['stage'], 'draft')
+
 class ThreePoolPolicyTests(unittest.TestCase):
     def test_valid_policy_preserves_model_choices_and_exact_pool_limits(self):
         policy = three_pool_policy()

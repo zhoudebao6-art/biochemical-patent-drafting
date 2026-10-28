@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "version": 12,
-  "updated_at": "2026-10-23T01:27:35.704150Z",
+  "version": 13,
+  "updated_at": "2026-10-28T02:32:32Z",
   "rules": [
     {
       "id": "BIO-01",
@@ -446,7 +446,7 @@
       "scope": "global",
       "section": "batch",
       "level": "must",
-      "instruction": "保留v6.37三池6/3/3、真实CLI证据、冻结阶段包、同案单活动attempt及控制器单写，实际容量必须核定。",
+      "instruction": "采用初稿16、复查8、修改8三池，总并发上限32；保留真实CLI证据、冻结阶段包、同案单活动attempt及控制器单写，实际容量必须核定。",
       "check": "复用原调度工具，不把配置当实际并发；中断先收结果并证实退出。",
       "exceptions": [
         "以后当前用户明确要求可覆盖对应默认规范，来源证据边界和真实验证状态不得伪造。"
@@ -455,6 +455,10 @@
         {
           "source": "references/batch-workflow.md",
           "locator": "本节全文；由用户2026-10-20注意事项和五组人工终稿归纳"
+        },
+        {
+          "source": "references/three-stage-pools.md",
+          "locator": "用户2026-10-28明确要求初稿16、复查8、修改8、总并发32；适用于新批次"
         }
       ]
     },
@@ -1359,6 +1363,40 @@
               {
                 "source": "references/claims-patterns.md",
                 "locator": "2026-10-23再读五组原件，50权项72自然段：源顺序、完整客体/限定、独立项与从权不同分段、9个含分号从权反例；用户本次通用修复要求"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "version": 13,
+      "previous_version": 12,
+      "updated_at": "2026-10-28T02:32:32Z",
+      "summary": "统一新批次三池为初稿16、复查8、修改8，总并发上限32；旧冻结批次保持原配置。",
+      "changes": [
+        {
+          "action": "replace",
+          "rule": {
+            "id": "BATCH-01",
+            "status": "active",
+            "origin": "workflow",
+            "scope": "global",
+            "section": "batch",
+            "level": "must",
+            "instruction": "采用初稿16、复查8、修改8三池，总并发上限32；保留真实CLI证据、冻结阶段包、同案单活动attempt及控制器单写，实际容量必须核定。",
+            "check": "复用原调度工具，不把配置当实际并发；中断先收结果并证实退出。",
+            "exceptions": [
+              "以后当前用户明确要求可覆盖对应默认规范，来源证据边界和真实验证状态不得伪造。"
+            ],
+            "evidence": [
+              {
+                "source": "references/batch-workflow.md",
+                "locator": "本节全文；由用户2026-10-20注意事项和五组人工终稿归纳"
+              },
+              {
+                "source": "references/three-stage-pools.md",
+                "locator": "用户2026-10-28明确要求初稿16、复查8、修改8、总并发32；适用于新批次"
               }
             ]
           }

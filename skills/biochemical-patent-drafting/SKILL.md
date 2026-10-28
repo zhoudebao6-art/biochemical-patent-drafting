@@ -20,6 +20,6 @@ description: 从生物、化学、材料及环境类技术项目优化书撰写�
 
 制作/维护技能、学习样本和讨论用法只进入维护；明确要求处理的文件/目录才办案。实际办案按[批次流程](references/batch-workflow.md)，每批一次按[runtime](references/runtime.md)核环境，使用parallel_batch.py和cli_pool.py。
 
-沿用6初稿/3复查/3修改三池，先核真实可用容量再传workers；配置不证明实际并发。draft用gpt-6.1-sol/high，review/revise用gpt-6.1-sol/xhigh，不静默降级。主控独占状态，同案一个活动attempt；完成即流转，通过一案立即平铺交付到唯一桌面批次文件夹。续跑复用原目录，中断先收已有结果并确认旧执行停止后再派发。
+沿用16初稿/8复查/8修改三池；64GB内存建议最多同时开32个CLI任务，先核真实可用容量再传workers，实际容量不足32时按实测填写；配置不证明实际并发。draft用gpt-6.1-sol/high，review/revise用gpt-6.1-sol/xhigh，不静默降级。主控独占状态，同案一个活动attempt；完成即流转，通过一案立即平铺交付到唯一桌面批次文件夹。续跑复用原目录，中断先收已有结果并确认旧执行停止后再派发。
 
 新版本只用于新批次，不改旧冻结快照。内部工具故障按[恢复规范](references/tool-fault-recovery.md)保全证据、修复验证后继续；来源或身份哈希异常不得重算放行。未审或有缺口的稿件不得称终稿，不承诺未经实测的产能或授权率。

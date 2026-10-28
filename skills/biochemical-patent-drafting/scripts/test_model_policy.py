@@ -46,8 +46,21 @@ class QueueFixture:
         self.root.mkdir(parents=True)
         self.src = self.root / 'input'
         self.src.mkdir()
-        docx(self.src / 'source.docx', 'source technical material')
-        selection = {'projects': [{'title': '一种处理系统', 'source_files': ['source.docx'],
+        self.biochemical_default = policy is None
+        title = '一种处理系统'
+        if self.biochemical_default:
+            import shutil
+            from test_biochemical import BiochemicalBehaviorTests
+            fixture = BiochemicalBehaviorTests()
+            fixture.setUp()
+            try:
+                shutil.copyfile(fixture.source, self.src / 'source.docx')
+                title = fixture.e['title_candidate']
+            finally:
+                fixture.doCleanups()
+        else:
+            docx(self.src / 'source.docx', 'source technical material')
+        selection = {'projects': [{'title': title, 'source_files': ['source.docx'],
                                    'primary_source': 'source.docx'}]}
         if policy is None:
             # Use the real new-batch defaults, including frozen preparation and
@@ -94,6 +107,19 @@ class QueueFixture:
         return value
 
     def write_docx(self, path, token):
+        if self.biochemical_default:
+            # Reuse the source-bound biochemical fixture for current defaults;
+            # keep the original soft-tech fixture for explicit legacy policies.
+            from test_biochemical import BiochemicalBehaviorTests
+            fixture = BiochemicalBehaviorTests()
+            fixture.setUp()
+            try:
+                document = Document(fixture.build())
+                document.core_properties.identifier = token
+                document.save(path)
+            finally:
+                fixture.doCleanups()
+            return
         # Keep the model-routing fixture compliant with current content/layout
         # defaults using the same shared authoring helper, not a parallel template.
         import json
@@ -198,7 +224,7 @@ class ModelPolicyTests(unittest.TestCase):
         w.record(draft)
         review = w.reserve(1)
         self.assertEqual({k: review['spawn_arguments'][k] for k in NEW_MODELS['review']}, NEW_MODELS['review'])
-        self.assertEqual(m['policy']['stage_pools'], {'draft': 6, 'review': 3, 'revise': 3})
+        self.assertEqual(m['policy']['stage_pools'], {'draft': 16, 'review': 8, 'revise': 8})
         self.assertEqual(m['policy']['review_mode'], 'review_only')
         with self.assertRaises(b.BatchError):
             w.submit(review, w.revised_receipt(review))
@@ -228,7 +254,7 @@ class ModelPolicyTests(unittest.TestCase):
             w.submit(recheck, stale_worker)
         w.record(recheck)
         dest = Path(queue.deliver(w.manifest))
-        self.assertEqual([path.name for path in dest.glob('*.docx')], ['一种处理系统.docx'])
+        self.assertEqual([path.name for path in dest.glob('*.docx')], ['一种示例材料的制备方法.docx'])
         case = b.read(w.manifest)['projects'][0]
         self.assertEqual(case['status'], 'delivered')
         self.assertEqual([a['stage'] for a in case['attempts']], ['draft', 'review', 'revise', 'review'])

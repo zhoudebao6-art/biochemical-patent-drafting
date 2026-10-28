@@ -12,7 +12,7 @@ python scripts/parallel_batch.py init --input 输入目录 --work-root 工作目
 python scripts/cli_pool.py run --manifest 批次manifest.json --workers 真实总容量 --controller 同一控制器标识
 ```
 
-init冻结本技能/规则/模型/来源；以后命令自动重定向到快照。三池上限6/3/3、目标12、在制最多24，实际容量必须核定并显式传workers。draft→review→revise(需要时)→新会话review；同案一个活动attempt。stage_pool_runner的独立准备/收稿通道和发布通道保持原版，完成即流转补位，通过即平铺交付，不等全批。真实CLI身份、模型/强度、会话日志和退出证据由cli_evidence校验，配置不证明执行。
+init冻结本技能/规则/模型/来源；以后命令自动重定向到快照。三池上限16/8/8、目标32、在制最多64；64GB内存建议最多同时开32个CLI任务，实际容量必须核定并显式传workers。draft→review→revise(需要时)→新会话review；同案一个活动attempt。stage_pool_runner的独立准备/收稿通道和发布通道保持原版，完成即流转补位，通过即平铺交付，不等全批。真实CLI身份、模型/强度、会话日志和退出证据由cli_evidence校验，配置不证明执行。
 
 手工collaboration通道用reserve --prepare返回的spawn_arguments及worker_context，真实派发后保存dispatch并bind；收稿按worker-receipt，record后立即deliver。命令参数以脚本--help及cli-workers.md为准，不伪造派发证据。draft高、review/revise极高强度沿batch-policy，不能静默换模型。
 
