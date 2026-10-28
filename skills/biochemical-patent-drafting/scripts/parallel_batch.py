@@ -74,8 +74,8 @@ def validate_policy(p):
     if p.get('output_contract') not in (None,'wording_title_v18'):
         raise BatchError('Invalid output contract')
     if p.get('output_contract') and (p.get('worker_preparation')!='frozen_stage_packet_v1' or
-                                    p['delivery'].get('layout')!='flat_final_files'):
-        raise BatchError('Output contract requires frozen preparation and flat delivery')
+                                    p['delivery'].get('layout') not in {'flat_final_files', 'source_case_files'}):
+        raise BatchError('Output contract requires frozen preparation and immediate final delivery')
     if p.get('prose_contract') not in (None,'clean_prose_v19'):
         raise BatchError('Invalid quotation/bracket contract')
     if p.get('prose_contract') and p.get('output_contract')!='wording_title_v18':
@@ -112,8 +112,8 @@ def validate_policy(p):
     if p.get('execution_optimization') not in (None, 'lean_execution_v24'):
         raise BatchError('Invalid execution optimization contract')
     if p.get('execution_optimization') and (p.get('worker_preparation') != 'frozen_stage_packet_v1'
-                                           or p['delivery'].get('layout') != 'flat_final_files'):
-        raise BatchError('Lean execution requires frozen preparation and flat delivery')
+                                           or p['delivery'].get('layout') not in {'flat_final_files', 'source_case_files'}):
+        raise BatchError('Lean execution requires frozen preparation and immediate final delivery')
     if p.get('post_review_optimization') not in (None, 'single_closeout_v25'):
         raise BatchError('Invalid post-review optimization contract')
     if p.get('post_review_optimization') and p.get('execution_optimization') != 'lean_execution_v24':
@@ -141,9 +141,9 @@ def validate_policy(p):
     if p.get('pool_execution') not in (None, NONBLOCKING_POOLS):
         raise BatchError('Invalid pool execution policy')
     if nonblocking_pools(p) and (p.get('stage_scheduling') != THREE_POOLS
-                                or p['delivery'].get('layout') != 'flat_final_files'
+                                or p['delivery'].get('layout') not in {'flat_final_files', 'source_case_files'}
                                 or p.get('worker_preparation') != 'frozen_stage_packet_v1'):
-        raise BatchError('Nonblocking pools require prepared three-stage flat delivery')
+        raise BatchError('Nonblocking pools require prepared three-stage immediate final delivery')
 
 @contextmanager
 def locked(path, timeout=10):
@@ -190,8 +190,8 @@ def init(root, work, selection, desktop=None, controller='controller'):
     if policy['delivery'].get('name_source') == 'input_folder':
         import flat_delivery
         flat_delivery.destination({'policy': policy, 'input': str(root), 'desktop': str(desk), 'batch_id': batch_id})
-    if b.inside(work, root) or b.inside(desk, root):
-        raise BatchError('Working and delivery roots must be outside input')
+    if b.inside(work, root) or (policy['delivery'].get('layout') != 'source_case_files' and b.inside(desk, root)):
+        raise BatchError('Working root must be outside input; legacy delivery roots must also be outside input')
     rules_bytes = RULES.read_bytes(); rules = json.loads(rules_bytes.decode('utf-8-sig'))
     if type(rules.get('version')) is not int or not isinstance(rules.get('rules'), list):
         raise BatchError('Invalid rule snapshot')
@@ -219,12 +219,15 @@ def init(root, work, selection, desktop=None, controller='controller'):
         primaries.add(key)
         rows.append({'id': f'{i:03d}', 'title': title, 'primary_source': str(primary), 'sources': sources,
                      'status': 'pending', 'attempts': [], 'receipts': [], 'active_attempt': None})
+    import case_folder_delivery as folders
+    targets = folders.freeze(root, rows) if folders.enabled({'policy': policy}) else None
     if policy.get('output_contract'):
         import flat_delivery
-        flat_delivery.names({'policy':policy,'projects':rows})
+        flat_delivery.names({'policy':policy,'input':str(root),'projects':rows})
     batch = work / batch_id; batch.mkdir(parents=True, exist_ok=False)
     (batch / 'rules.snapshot.json').write_bytes(rules_bytes)
     b.atomic(batch / 'policy.snapshot.json', policy)
+    if targets is not None: b.atomic(batch / folders.SNAPSHOT, targets)
     for case in rows:
         source_dir = batch / 'cases' / case['id'] / 'sources'; source_dir.mkdir(parents=True)
         for j, src in enumerate(case['sources'], 1):
@@ -280,6 +283,8 @@ def _load_manifest(path):
             verify(m, full=False)
         except (ValueError, OSError) as exc:
             raise BatchError(str(exc)) from exc
+    import case_folder_delivery as folders
+    if folders.enabled(m): folders.verify(m)
     return m
 
 def case_by_id(m, ident):
@@ -440,7 +445,7 @@ def mutate(path, controller, operation):
     with locked(path):
         m = load_manifest(path)
         if controller != m['controller']: raise BatchError('Only the batch controller may write the manifest')
-        if m.get('delivery_closed') or (m.get('delivery_path') and m.get('delivery_mode') not in {'incremental_v1', 'flat_final_files_v1'}):
+        if m.get('delivery_closed') or (m.get('delivery_path') and m.get('delivery_mode') not in {'incremental_v1', 'flat_final_files_v1', 'source_case_files_v1'}):
             raise BatchError('Delivered batch is closed')
         result = operation(m)
         m['sequence'] += 1; b.atomic(path, m)

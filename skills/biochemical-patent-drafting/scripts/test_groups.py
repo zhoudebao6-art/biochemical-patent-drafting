@@ -3,7 +3,7 @@ from pathlib import Path
 import argparse,json,sys,unittest
 GROUPS={
     'biochemical':['test_bio_claims','test_biochemical','test_bio_spacing','test_bio_layout','test_bio_presentation','test_bio_background','test_bio_scripts','test_bio_package'],
-    'workflow':['test_three_stage_pools','test_nonblocking_pools','test_cli_evidence','test_incremental_review','test_flat_delivery'],
+    'workflow':['test_three_stage_pools','test_nonblocking_pools','test_cli_evidence','test_incremental_review','test_flat_delivery','test_case_folder_delivery'],
     'pages':['test_render_docx_checked'],
 }
 def main():

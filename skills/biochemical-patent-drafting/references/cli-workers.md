@@ -23,7 +23,7 @@ run/status及队列命令自动转入本批冻结脚本。可用--executable指�
 
 stage_pool_runner使用三个独立本地准备/收稿通道和一个单写交付通道；慢I/O在清单锁外，同案短事务合并，准备中占槽。worker仅写本attempt，不启动新CLI、批次或子worker，不改来源、其他案或冻结工具。阶段包只读一次，规则/数学/来源导航和证据复用见[检查与收尾](fast-execution.md)。
 
-review先审内容，问题交revise，改后由新review独立重验；通过即交付桌面同一批次目录。CLI成功不表示终稿通过：parallel_batch.record仍核来源、当前DOCX、六项、渲染及全部页证据。verified_scope_v1只能继承真实未受影响的通过范围和已审同稿页面，缓存及自报pass均不能替代验收。
+review先审内容，问题交revise，改后由新review独立重验；通过即放回本案原始小文件夹，文件名使用该小文件夹完整名称加.docx。CLI成功不表示终稿通过：parallel_batch.record仍核来源、当前DOCX、六项、渲染及全部页证据。verified_scope_v1只能继承真实未受影响的通过范围和已审同稿页面，缓存及自报pass均不能替代验收。
 
 ## 中断与失败
 

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "version": 16,
-  "updated_at": "2026-10-28T04:37:18Z",
+  "version": 17,
+  "updated_at": "2026-10-28T06:57:59Z",
   "rules": [
     {
       "id": "BIO-01",
@@ -477,12 +477,12 @@
     {
       "id": "BATCH-02",
       "status": "active",
-      "origin": "workflow",
+      "origin": "user",
       "scope": "global",
       "section": "delivery",
       "level": "must",
-      "instruction": "逐案独立通过立即交付到本批唯一桌面文件夹根部，续跑沿用，源/稿/页面SHA一致且防覆盖。",
-      "check": "沿原原子发布和幂等恢复，不等整批，不向其他目录兜底。",
+      "instruction": "逐案独立通过立即把验收终稿放回本案原始小文件夹，文件名严格为小文件夹完整名称加.docx，不加终稿、案号或日期后缀；原项目书和附件保留。建批冻结原始项目书所在目录、目录身份及完整文件名，续跑沿用，源/稿/页面SHA一致。",
+      "check": "只由主控原子发布已独立验收的当前稿；worker只写attempt。交付文件SHA须等于验收稿SHA；已有同名文件一律保留并报告冲突，不覆盖、不擅自改名或换目录。两个项目书不得共用同一终稿目标；同名小文件夹在不同目录下可分别交付。记录和待处理材料留工作区，不把内部快照目录当原案目录。新规则不迁移旧冻结批次。",
       "exceptions": [
         "以后当前用户明确要求可覆盖对应默认规范，来源证据边界和真实验证状态不得伪造。"
       ],
@@ -490,6 +490,10 @@
         {
           "source": "references/batch-workflow.md",
           "locator": "本节全文；由用户2026-10-20注意事项和五组人工终稿归纳"
+        },
+        {
+          "source": "references/batch-workflow.md",
+          "locator": "2026-10-28用户文件夹截图及明确要求：终稿回到对应小文件夹并与该文件夹同名"
         }
       ]
     },
@@ -1547,6 +1551,40 @@
               {
                 "source": "references/claims-patterns.md",
                 "locator": "2026-10-28用户明确要求技能通用修复、后续所有多独权案件完整前文引用，不得仅修改单稿"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "version": 17,
+      "previous_version": 16,
+      "updated_at": "2026-10-28T06:57:59Z",
+      "summary": "新批次验收终稿返回各案原始小文件夹，严格按小文件夹完整名称命名并防覆盖。",
+      "changes": [
+        {
+          "action": "replace",
+          "rule": {
+            "id": "BATCH-02",
+            "status": "active",
+            "origin": "user",
+            "scope": "global",
+            "section": "delivery",
+            "level": "must",
+            "instruction": "逐案独立通过立即把验收终稿放回本案原始小文件夹，文件名严格为小文件夹完整名称加.docx，不加终稿、案号或日期后缀；原项目书和附件保留。建批冻结原始项目书所在目录、目录身份及完整文件名，续跑沿用，源/稿/页面SHA一致。",
+            "check": "只由主控原子发布已独立验收的当前稿；worker只写attempt。交付文件SHA须等于验收稿SHA；已有同名文件一律保留并报告冲突，不覆盖、不擅自改名或换目录。两个项目书不得共用同一终稿目标；同名小文件夹在不同目录下可分别交付。记录和待处理材料留工作区，不把内部快照目录当原案目录。新规则不迁移旧冻结批次。",
+            "exceptions": [
+              "以后当前用户明确要求可覆盖对应默认规范，来源证据边界和真实验证状态不得伪造。"
+            ],
+            "evidence": [
+              {
+                "source": "references/batch-workflow.md",
+                "locator": "本节全文；由用户2026-10-20注意事项和五组人工终稿归纳"
+              },
+              {
+                "source": "references/batch-workflow.md",
+                "locator": "2026-10-28用户文件夹截图及明确要求：终稿回到对应小文件夹并与该文件夹同名"
               }
             ]
           }

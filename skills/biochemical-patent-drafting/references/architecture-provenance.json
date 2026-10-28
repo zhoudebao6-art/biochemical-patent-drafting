@@ -7,8 +7,8 @@
     {
       "file": "scripts/parallel_batch.py",
       "upstream_sha256": "05ef0574d873a5860ebb995e23e2b3c978b982d4750309de4376abb78d730539",
-      "fork_sha256": "05ef0574d873a5860ebb995e23e2b3c978b982d4750309de4376abb78d730539",
-      "byte_identical": true
+      "fork_sha256": "c3bf9c3291f405761a454a5d58207c0e64c15023e445da41569ccc9042fdf483",
+      "byte_identical": false
     },
     {
       "file": "scripts/cli_pool.py",
@@ -55,14 +55,14 @@
     {
       "file": "scripts/independent_delivery.py",
       "upstream_sha256": "3a355b9b7f24a8a951704264695d6d4e22e4b77881d5917bb57288c5fc3e8b8c",
-      "fork_sha256": "3a355b9b7f24a8a951704264695d6d4e22e4b77881d5917bb57288c5fc3e8b8c",
-      "byte_identical": true
+      "fork_sha256": "5f8fd9af09ba808359227399b0a11fd8ead4f0fe1dfc38e229d4722bd50280f2",
+      "byte_identical": false
     },
     {
       "file": "scripts/flat_delivery.py",
       "upstream_sha256": "ee223cc741378337e8443d8fdb4bbfbf511d6051891f33d4f9ff9a54f33193b8",
-      "fork_sha256": "ee223cc741378337e8443d8fdb4bbfbf511d6051891f33d4f9ff9a54f33193b8",
-      "byte_identical": true
+      "fork_sha256": "948500a916106ae1bb6766bbd1ec758df40867c237b74ab781014b4e78af3cd9",
+      "byte_identical": false
     },
     {
       "file": "scripts/render_docx_checked.py",
@@ -73,7 +73,7 @@
     {
       "file": "scripts/output_contract.py",
       "upstream_sha256": "3e42c5ab3e7b6890f015ea0f0c176074c50d1dc39e2bb80c9a2ed8a1ee29873e",
-      "fork_sha256": "28efea82da2818e23cc515b1bc8158c0572406e5b32bb26e8225dc029a28b91b",
+      "fork_sha256": "ddabb94ea6db27f1f55a509abb11265e3b0a2d04c1b10874fb4fde2c1979c717",
       "byte_identical": false
     },
     {
@@ -85,7 +85,7 @@
     {
       "file": "scripts/batch_tool.py",
       "upstream_sha256": "d8ac43d5907bccbdc8809d63669ceba2b451d9d6904dd6ee5219a4f415ea7cc0",
-      "fork_sha256": "08c1ac7875fe09719c0a13d6264e99db58d1087653f6128ea401c73a4d30fb66",
+      "fork_sha256": "37375bac3e9b9dc8c38db4f4af87fad43a5b17e514f4ab4e3a6192e5ec696f1a",
       "byte_identical": false
     }
   ],
@@ -111,7 +111,8 @@
     "v1.2.0: compact source evidence retains identity, locators and rich-object markers while omitting duplicate body XML; bio_check uses one immutable byte snapshot, shared parsed XML and a final mutation guard; bio_author --check combines generation and existing mechanical checks with reusable same-hash inspection cache, without accepting drafts; new snapshots exclude maintenance-only math_fragments; malformed XML is a controlled handoff source error. Old CLI/evidence, all 29 rules, three pools, independent review, frozen snapshots and real-page acceptance remain unchanged.",
     "v1.2.1: new batches use draft/review/revise limits 16/8/8 and total worker ceiling 32, with an in-flight case buffer of 64. Actual capacity remains explicit and may be lower. Existing scheduler/runtime code and frozen batches are unchanged; rule library v13 changes only BATCH-01, retaining 29 active rules. Scheduling regression is synthetic, not a 32-worker throughput measurement.",
     "v1.3.0: reuse bio_claims.collect in the inspection path; share source-bound preflight and standard inspection through bio_check.check_file for generated and manually edited drafts; retain check_generated and standalone CLI compatibility; remove two uncalled upstream helpers; consolidate current CLI/cache/recovery instructions. Rules v13, all 29 active rules, 16/8/8 pools, frozen batches and independent acceptance remain unchanged.",
-    "v1.4.0: one claim structural pass per source-bound validation, shared with source and dependency checks; public legacy entrypoints preserved without cross-document caching. Remove unused common lock/path helpers and a stale unused check-key constant. Current README drops repeated version history. Rules v16, all 29 rules, multi-independent complete references, three pools and independent acceptance remain unchanged."
+    "v1.4.0: one claim structural pass per source-bound validation, shared with source and dependency checks; public legacy entrypoints preserved without cross-document caching. Remove unused common lock/path helpers and a stale unused check-key constant. Current README drops repeated version history. Rules v16, all 29 rules, multi-independent complete references, three pools and independent acceptance remain unchanged.",
+    "v1.5.0: reuse the atomic publisher for frozen per-case source-folder destinations and exact folder-basename DOCX filenames. New batches validate target uniqueness, original directory identity, current accepted SHA and no-overwrite receipts; original proposals and attachments remain untouched. Old frozen flat batches remain unchanged. Rule v17 updates only BATCH-02; all content checks, multi-independent references and 16/8/8 pools retained."
   ],
   "biochemical_components": [
     {
@@ -161,6 +162,10 @@
     {
       "file": "scripts/bio_scripts.py",
       "sha256": "15a171cf25f5dd67599fee892c005e4f41b266bcebf312573ccba7453fff29ee"
+    },
+    {
+      "file": "scripts/case_folder_delivery.py",
+      "sha256": "bef7299d6c8235a91ba9032d3a8e80729e545ab4fe9bb90fe5b24aaf79971066"
     }
   ]
 }

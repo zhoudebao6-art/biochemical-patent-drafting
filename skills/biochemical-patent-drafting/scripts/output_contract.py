@@ -290,9 +290,13 @@ def verify(m,case,attempt,receipt):
         raise b.BatchError('Final wording/title report refers to another artifact')
     if m['policy'].get('biochemical_contract') == 'biochemical_v1':
         import bio_contract
-        return bio_contract.check(report, case['title'], receipt.get('findings', []),
+        result = bio_contract.check(report, case['title'], receipt.get('findings', []),
                                   source_reports=verified.get('source_reports'),
                                   require_example_sources=m.get('rule_version',0)>=8)
+        import case_folder_delivery as folders
+        if folders.enabled(m):
+            result['delivery_filename'] = folders.verify(m)[case['id']]['filename']
+        return result
     return check(report,case['title'],receipt.get('findings',[]),
                  m['policy'].get('prose_contract')==PROSE_MODE, [s['sha256'] for s in case.get('sources',[])],
                  m['policy'].get('benefit_contract')==BENEFIT_MODE,

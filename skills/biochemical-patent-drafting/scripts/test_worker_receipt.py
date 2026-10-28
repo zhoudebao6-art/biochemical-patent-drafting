@@ -127,10 +127,10 @@ class ReceiptPreflightTests(unittest.TestCase):
 
     def test_real_deferred_preparation_job_and_assembly_preserve_frozen_evidence(self):
         source_dir = self.root/'source'; source_dir.mkdir()
-        original = source_dir/'source.docx'; docx(original, 'synthetic source')
+        original = source_dir/'proposal.docx'; docx(original, 'synthetic source')
         original_sha = b.sha(original)
-        selection = {'projects': [{'title': '合成回执准备链', 'source_files': ['source.docx'],
-                                   'primary_source': 'source.docx'}]}
+        selection = {'projects': [{'title': '合成回执准备链', 'source_files': ['proposal.docx'],
+                                   'primary_source': 'proposal.docx'}]}
         manifest = queue.init(source_dir, self.root/'work', selection, self.root/'desktop')
         initial = queue.load_manifest(manifest)
         self.assertTrue(queue.nonblocking_pools(initial['policy']))

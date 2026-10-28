@@ -23,7 +23,7 @@ def deliver(path, controller='controller', *, audit_history=False):
                 if not any(c['status'] == 'accepted' for c in current['projects']) and not all(
                         c['status'] in b.TERMINAL and not c.get('active_attempt') for c in current['projects']):
                     raise queue.BatchError('No accepted case is ready for flat delivery')
-                current.update(delivery_mode=flat.MODE, delivery_transaction_id=uuid.uuid4().hex,
+                current.update(delivery_mode=flat.mode(current), delivery_transaction_id=uuid.uuid4().hex,
                                delivery_closed=False, delivery_items={})
                 current['sequence'] += 1
                 b.atomic(path, current)

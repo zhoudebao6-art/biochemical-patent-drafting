@@ -1,6 +1,7 @@
-"""Publish final DOCX files in one flat, owned directory.
+"""Publish accepted DOCX files through one recoverable no-overwrite transaction.
 
-Only the immutable hidden owner file accompanies files in the final directory.
+Legacy batches use an owned flat directory. New biochemical batches route each
+final to its existing source case folder without owning that user directory.
 Per-case publication intents, receipts and summaries remain in the work batch.
 Copies use a hidden, owned sibling directory on the destination filesystem.
 Unrecorded crash remnants stay there; unknown files are never swept or adopted.
@@ -19,12 +20,21 @@ import uuid
 from pathlib import Path
 import batch_tool as b
 import incremental_delivery as inc
+import case_folder_delivery as folders
 
 MODE = 'flat_final_files_v1'
 
 
 def enabled(m):
-    return m['policy']['delivery'].get('layout') == 'flat_final_files'
+    return m['policy']['delivery'].get('layout') == 'flat_final_files' or folders.enabled(m)
+
+
+def mode(m):
+    return folders.MODE if folders.enabled(m) else MODE
+
+
+def case_destination(m, c, dest):
+    return folders.destination(m, c) if folders.enabled(m) else dest
 
 
 def name_key(name):
@@ -34,6 +44,8 @@ def name_key(name):
 def names(m):
     """Resolve all batch names before any case finishes, independent of order."""
     import output_contract
+    if folders.enabled(m):
+        return {key: value['filename'] for key, value in folders.mapping(m).items()}
     if output_contract.enabled(m):
         result={c['id']:output_contract.filename(c['title']) for c in m['projects']}
         if len(result)!=len(m['projects']) or len({name_key(n) for n in result.values()})!=len(result):
@@ -79,6 +91,9 @@ def folder_name(m):
 
 
 def destination(m):
+    if folders.enabled(m):
+        folders.verify(m)
+        return b.root_path(m['input'], required=True)
     desk = b.root_path(m['desktop'])
     dest = b.clean_path(desk / folder_name(m), desk)
     if b.inside(dest, m['input']): raise b.BatchError('Delivery cannot be inside input')
@@ -87,7 +102,7 @@ def destination(m):
 
 def owner(m):
     return {'batch_id': m['batch_id'], 'transaction_id': m['delivery_transaction_id'],
-            'batch_dir': m['batch_dir'], 'rules_sha256': m['rules_sha256'], 'mode': MODE,
+            'batch_dir': m['batch_dir'], 'rules_sha256': m['rules_sha256'], 'mode': mode(m),
             'filenames': names(m)}
 
 
@@ -100,6 +115,9 @@ def hidden(path):
 
 
 def verify_owner(m, dest):
+    if folders.enabled(m):
+        folders.verify(m)  # original case directories are user-owned
+        return
     if b.read(inc.regular(dest / '.delivery-owner.json', dest)) != owner(m):
         raise b.BatchError('Delivery directory belongs to another transaction; preserved')
 
@@ -156,10 +174,13 @@ def target_path(dest, filename):
 
 
 def publish_case(m, c, dest, verify):
+    delivery_root = dest
+    dest = case_destination(m, c, dest)
     filename = names(m)[c['id']]
     target = target_path(dest, filename)
     expected = {'batch_id': m['batch_id'], 'transaction_id': m['delivery_transaction_id'],
                 'case_id': c['id'], 'file': filename, 'sha256': c['passed_review_sha256']}
+    if folders.enabled(m): expected['target'] = str(target)
     record_path = receipt_path(m, c)
     if record_path.exists():
         record = b.read(inc.regular(record_path, m['batch_dir']))
@@ -186,6 +207,7 @@ def publish_case(m, c, dest, verify):
             if not same_file(staging, identity): raise b.BatchError('Staging identity changed; preserved')
             if b.sha(inc.regular(staging, stage_root)) != expected['sha256']: raise b.BatchError('Staged file changed; preserved')
             verify(c)
+            case_destination(m, c, delivery_root); target_path(dest, filename)
             publish_file(staging, target)
         else:
             raise b.BatchError('Recorded publication disappeared; preserved')
@@ -205,14 +227,15 @@ def publish_case(m, c, dest, verify):
             record = {'publication': expected, 'staging_file': staging.name, 'file_identity': identity,
                       'staging_area': 'owned_sibling'}
             b.atomic(record_path, record); intent_saved = True
-            target_path(dest, filename)
+            case_destination(m, c, delivery_root); target_path(dest, filename)
             publish_file(staging, target)
         finally:
             # Retain a verified intent's stage for recovery after an interrupted move.
             if not intent_saved and same_file(staging, identity): staging.unlink()
     if b.sha(inc.regular(target, dest)) != expected['sha256']:
         raise b.BatchError('Delivered artifact changed; preserved')
-    return {'relative_path': filename, 'sha256': expected['sha256'], 'kind': 'accepted'}
+    relative = str(target.relative_to(delivery_root)) if folders.enabled(m) else filename
+    return {'relative_path': relative, 'sha256': expected['sha256'], 'kind': 'accepted'}
 
 
 def publish_file(staging, target):
@@ -224,14 +247,14 @@ def publish_file(staging, target):
 
 
 def recover_published_cases(m, verify):
-    if m.get('delivery_mode') != MODE: return []
+    if m.get('delivery_mode') != mode(m): return []
     dest = destination(m)
     if not dest.exists(): return []
     verify_owner(m, dest)
     recovered = []
     for c in m['projects']:
         if c['status'] != 'accepted': continue
-        target = target_path(dest, names(m)[c['id']])
+        target = target_path(case_destination(m, c, dest), names(m)[c['id']])
         if not target.exists(): continue
         candidate = copy.deepcopy(c); candidate['status'] = 'delivered'
         verify(candidate)  # frozen evidence only; original sources may have changed after publication
@@ -259,7 +282,7 @@ def deliver(path, m, verify, *, force_history_audit=False, write_metadata=True):
         # Publish new independently accepted bytes before the terminal history
         # audit; the next publication tick performs that audit before closure.
         closed = False
-    if not selected and not closed and m.get('delivery_mode') != MODE:
+    if not selected and not closed and m.get('delivery_mode') != mode(m):
         raise b.BatchError('No accepted case is ready for flat delivery')
     lean = m['policy'].get('execution_optimization') == 'lean_execution_v24'
     # New cases are fully verified immediately before atomic publication below.
@@ -272,11 +295,11 @@ def deliver(path, m, verify, *, force_history_audit=False, write_metadata=True):
     dest = destination(m); desk = dest.parent
     if m.get('delivery_path') and Path(m['delivery_path']) != dest: raise b.BatchError('Delivery location changed')
     if m.get('delivery_path') and not dest.exists(): raise b.BatchError('Recorded delivery directory disappeared')
-    if m.get('delivery_mode') != MODE:
+    if m.get('delivery_mode') != mode(m):
         if m.get('delivery_mode') or m.get('delivery_path'): raise b.BatchError('Existing delivery layout cannot be migrated')
-        m.update(delivery_mode=MODE, delivery_transaction_id=uuid.uuid4().hex, delivery_closed=False, delivery_items={})
+        m.update(delivery_mode=mode(m), delivery_transaction_id=uuid.uuid4().hex, delivery_closed=False, delivery_items={})
         b.atomic(path, m)
-    if not dest.exists():
+    if not dest.exists() and not folders.enabled(m):
         desk.mkdir(parents=True, exist_ok=True)
         staging = Path(tempfile.mkdtemp(prefix='.patent-' + m['batch_id'] + '-', dir=desk))
         try:
@@ -317,7 +340,9 @@ def sync_metadata(final):
     work = work_directory(m)
     labels = {'delivered': '已完成', 'needs_input': '待补材料', 'failed': '执行失败', 'pending': '待撰写',
               'drafted': '待复查', 'revised': '待重验', 'fix_required': '待修正', 'accepted': '待交付'}
-    lines = ['专利批次交付清单', '桌面批次文件夹根部仅放验收成稿；交付与校核记录保留在工作目录。',
+    placement = ('验收终稿放回各案原始小文件夹，文件名为小文件夹完整名称.docx；记录保留在工作目录。'
+                 if folders.enabled(m) else '桌面批次文件夹根部仅放验收成稿；交付与校核记录保留在工作目录。')
+    lines = ['专利批次交付清单', placement,
              '批次已结束。' if closed else '逐案交付中；其他项目继续处理。']
     lines.extend(f"{c['id']} {c['title']}：{labels[c['status']]}" for c in final['projects'])
     lines.extend(f"待处理说明 {c['id']} {c['title']}：{c['receipts'][-1].get('reason', '尚未验收') if c['receipts'] else '尚未验收'}；未形成验收成稿，未交付。"

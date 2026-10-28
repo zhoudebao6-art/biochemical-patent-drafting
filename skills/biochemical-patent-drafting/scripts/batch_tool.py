@@ -169,7 +169,8 @@ def validate_policy(p, *, legacy_snapshot=False):
     expected_delivery = {'folder_prefix': '专利撰写完成', 'accepted_subdir': '已完成', 'pending_subdir': '待处理'}
     flat_delivery = {'folder_prefix': '专利撰写完成', 'layout': 'flat_final_files', 'timing': 'after_each_acceptance'}
     input_folder_delivery = {'name_source': 'input_folder', 'folder_suffix': '终稿', 'layout': 'flat_final_files', 'timing': 'after_each_acceptance'}
-    if not isinstance(delivery, dict) or delivery not in (expected_delivery, dict(expected_delivery, timing='after_each_acceptance'), flat_delivery, input_folder_delivery):
+    if not isinstance(delivery, dict) or delivery not in (expected_delivery, dict(expected_delivery, timing='after_each_acceptance'), flat_delivery, input_folder_delivery,
+            {'name_source': 'case_folder', 'layout': 'source_case_files', 'timing': 'after_each_acceptance'}):
         raise BatchError('Invalid delivery policy')
 def model_label(policy, stage):
     """Describe the frozen stage policy, including historical unspecified effort."""
@@ -185,6 +186,8 @@ def init(root, work, selection, desktop=None):
     if isinstance(policy, dict) and policy.get('execution') == 'rolling_parallel':
         raise BatchError('New rolling_parallel batches must use parallel_batch.py init; existing serial manifests remain supported here')
     validate_policy(policy)
+    if policy['delivery'].get('layout') == 'source_case_files':
+        raise BatchError('Case-folder delivery requires parallel_batch.py')
     batch_id = datetime.now().strftime('%Y%m%d_%H%M%S') + '_' + uuid.uuid4().hex[:10]
     if policy['delivery'].get('name_source') == 'input_folder':
         import flat_delivery

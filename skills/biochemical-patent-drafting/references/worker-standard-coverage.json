@@ -8,5 +8,5 @@
     "worker-standard.md": "335a99295f5fdc68d077aebaf3aafe40d38c6157a4ab21858b5d36fd53b491e5",
     "claims-patterns.md": "5d9019d6bcd1f291f201705197eee95b6492cb5689478c2d4d3ba70c5e355cbd"
   },
-  "reviewed_scope": "Rules v16: complete reference assembly and per-item integrity evidence for every later independent claim; full source object, content and separate dependent chains retained."
+  "reviewed_scope": "Rules v17: previous v16 domain standards retained; BATCH-02 controller-only delivery routes finals to original case folders with exact folder basenames and no overwrite."
 }
