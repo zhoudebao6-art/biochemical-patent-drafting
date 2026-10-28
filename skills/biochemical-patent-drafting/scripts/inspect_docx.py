@@ -834,12 +834,22 @@ def parse_parent_references(head, expansion_limit=1000):
     return refs, list(dict.fromkeys(parents)), issues
 
 
-def relationships(z, part):
+def xml_reader(z):
+    """Share standard-library XML trees within one inspection, never across files."""
+    roots = {}
+    def read(name):
+        if name not in roots:
+            roots[name] = ET.fromstring(z.read(name))
+        return roots[name]
+    return read
+
+
+def relationships(z, part, read_xml=None):
     name = posixpath.join(posixpath.dirname(part), '_rels', posixpath.basename(part)+'.rels')
     if name not in z.namelist():
         return {}
     result = {}
-    for node in ET.fromstring(z.read(name)):
+    for node in (read_xml or xml_reader(z))(name):
         target = node.get('Target', '')
         external = node.get('TargetMode') == 'External'
         resolved = target if external else posixpath.normpath(posixpath.join(posixpath.dirname(part), target)).lstrip('/')
@@ -847,8 +857,9 @@ def relationships(z, part):
     return result
 
 
-def attach_section_headers(root, paragraphs, rels, z):
+def attach_section_headers(root, paragraphs, rels, z, read_xml=None):
     """Associate body paragraphs with their section's inherited header text."""
+    read_xml = read_xml or xml_reader(z)
     nodes = root.findall('.//w:p', NS)
     sections = [(i + 1, p.find('./w:pPr/w:sectPr', NS)) for i, p in enumerate(nodes)]
     sections.append((len(nodes), root.find('./w:body/w:sectPr', NS)))
@@ -864,7 +875,7 @@ def attach_section_headers(root, paragraphs, rels, z):
             target = relation.get('part')
             text = ''
             if target in z.namelist() and not relation.get('external'):
-                text = visible_text(ET.fromstring(z.read(target)))
+                text = visible_text(read_xml(target))
             headers[ref.get(f'{{{NS["w"]}}}type', 'default')] = text
         for paragraph in paragraphs[start:end]:
             paragraph['section_headers'] = list(headers.values())
@@ -878,22 +889,23 @@ def attach_section_headers(root, paragraphs, rels, z):
     return evidence
 
 
-def color_reader(z):
+def color_reader(z, read_xml=None):
     """Resolve common applied Word font colors, not unused style declarations.
 
     Conditional table formatting, drawing text and rendering remain visual checks.
     Unknown themes/styles are review cues, never evidence that text is black.
     """
+    read_xml = read_xml or xml_reader(z)
     w = '{' + NS['w'] + '}'
-    styles = ET.fromstring(z.read('word/styles.xml')) if 'word/styles.xml' in z.namelist() else ET.Element('styles')
+    styles = read_xml('word/styles.xml') if 'word/styles.xml' in z.namelist() else ET.Element('styles')
     catalog = {s.get(w+'styleId'): s for s in styles.findall('w:style', NS)}
     defaults = {s.get(w+'type'): s.get(w+'styleId') for s in catalog.values() if s.get(w+'default') in {'1','true','on'}}
     default_color = styles.find('./w:docDefaults/w:rPrDefault/w:rPr/w:color', NS)
     theme = {}
-    theme_parts = [r['part'] for r in relationships(z, 'word/document.xml').values()
+    theme_parts = [r['part'] for r in relationships(z, 'word/document.xml', read_xml).values()
                    if not r.get('external') and r.get('type', '').endswith('/theme')]
     if len(theme_parts) == 1 and theme_parts[0] in z.namelist():
-        tree = ET.fromstring(z.read(theme_parts[0]))
+        tree = read_xml(theme_parts[0])
         for slot in tree.findall('./a:themeElements/a:clrScheme/*', NS):
             if len(slot): theme[slot.tag.split('}')[-1]] = slot[0].get('val') if slot[0].tag.endswith('}srgbClr') else slot[0].get('lastClr')
     aliases = {'dark1':'dk1','light1':'lt1','dark2':'dk2','light2':'lt2','hyperlink':'hlink','followedHyperlink':'folHlink'}
@@ -983,13 +995,14 @@ def inspect(path):
         scans=bio_package.scan_package(z,result['sha256'])
         for mode in ('background','native_scripts','spacing'):
             result['biochemical_'+mode+'_evidence']=scans[mode]
-        read_colors = color_reader(z)
-        numbering_root=ET.fromstring(z.read('word/numbering.xml')) if 'word/numbering.xml' in names else None
+        read_xml = xml_reader(z)
+        read_colors = color_reader(z, read_xml)
+        numbering_root=read_xml('word/numbering.xml') if 'word/numbering.xml' in names else None
         applied_styles={};styles_root=ET.Element('styles')
         # Keep compact style definitions so paragraph/header inheritance can be
         # resolved without reopening the ZIP. This is not an effective-style verdict.
         if 'word/styles.xml' in names:
-            styles_root = ET.fromstring(z.read('word/styles.xml'))
+            styles_root = read_xml('word/styles.xml')
             applied_styles={s.get(f'{{{NS["w"]}}}styleId'):s for s in styles_root.findall('./w:style',NS)}
             default = styles_root.find('./w:docDefaults', NS)
             result['style_evidence'] = {
@@ -1004,11 +1017,11 @@ def inspect(path):
         parts = [n for n in names if re.fullmatch(r'word/(document|header\d+|footer\d+|footnotes|endnotes|comments)\.xml', n)]
         parts.sort(key=lambda n: (n != 'word/document.xml', n))
         for part in parts:
-            root = ET.fromstring(z.read(part))
+            root = read_xml(part)
             result['content_spacing_evidence']['hits'].extend(content_spacing_hits(root, part))
             punctuation=punctuation_evidence(root,part)
             for key in punctuation:result['punctuation_evidence'][key].extend(punctuation[key])
-            rels = relationships(z, part)
+            rels = relationships(z, part, read_xml)
             paragraphs = []
             operators = {}
             direct_paragraphs = {id(p) for p in root.findall('./w:body/w:p', NS)} if part == 'word/document.xml' else set()
@@ -1074,7 +1087,7 @@ def inspect(path):
                     'content_evidence':paragraph_content_evidence(p)})
             section_evidence=[]
             if part == 'word/document.xml':
-                section_evidence=attach_section_headers(root, paragraphs, rels, z)
+                section_evidence=attach_section_headers(root, paragraphs, rels, z, read_xml)
                 import bio_layout
                 result['biochemical_table_evidence']=bio_layout.table_evidence(root,result['sha256'])
                 import bio_presentation
@@ -1092,7 +1105,7 @@ def inspect(path):
                      (re.fullmatch(r'word/(charts|diagrams)/.+\.xml',n) or
                       re.fullmatch(r'word/.+\.vml',n))]
         for name in extra_parts:
-            root=ET.fromstring(z.read(name))
+            root=read_xml(name)
             punctuation=punctuation_evidence(root,name)
             for key in punctuation:result['punctuation_evidence'][key].extend(punctuation[key])
             result['content_spacing_evidence']['hits'].extend(content_spacing_hits(root,name))

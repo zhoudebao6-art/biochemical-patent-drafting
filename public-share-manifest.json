@@ -1,26 +1,28 @@
 {
-  "version": "1.5.0",
+  "version": "1.6.0",
   "edition": "public-share",
   "date": "2026-10-28",
   "rule_version": 17,
   "file_count": 142,
-  "archive": "biochemical-patent-drafting-v1.5.0.zip",
-  "archive_sha256": "a422c81af924d712abb126779f971fd957867610b7f9afe987d7da57b638f49a",
-  "source_release_zip_sha256": "1251904ec09e29c9568730c292dba738e8f0c8240a9d00cf30fcb212fdd8f819",
+  "archive": "biochemical-patent-drafting-v1.6.0.zip",
+  "archive_sha256": "0ed39d9682c79566dfcf5664de1b6350309ca65f308878e07dfb09e605bddc6d",
+  "source_release_zip_sha256": "dec65b5768dc1eba430220481f226326d8ccdf9597d54f984b59e2a69441edd3",
   "new_machine_setup_required": true,
   "checks": {
-    "total_tests": 326,
+    "total_tests": 298,
     "test_groups": {
-      "biochemical-tests.log": 127,
-      "integration-tests.log": 199
+      "biochemical-tests.log": 130,
+      "integration-tests.log": 154,
+      "extractor-tests.log": 14
     },
     "source_install_zip_identity": true,
-    "rules_policy_runtime_template_unchanged": false,
+    "rules_policy_runtime_template_unchanged": true,
     "softtech_skill_unchanged": true,
-    "real_document_equivalence": true,
+    "real_document_equivalence": false,
+    "validation_material": "Local generated software fixtures; no original user materials collected for model evaluation or training.",
     "paid_model_calls": 0,
     "throughput_measurement": false,
-    "public_targeted_tests": 103,
+    "public_targeted_tests": 116,
     "public_runtime_unconfigured_and_rejected": true
   },
   "files": [
@@ -38,11 +40,11 @@
     },
     {
       "path": "README.md",
-      "sha256": "c20f9b8347faaa691153e1fc8fe2916d1b9431502edb327689a1b7eb9a78a0d2"
+      "sha256": "bf5919d7e280ec1ba19370c8d3e2aeef05f16db6400887d9ebfeeca3ce7be0ff"
     },
     {
       "path": "references/architecture-provenance.json",
-      "sha256": "5b4d6fd662641e72c9f941bf01493ffad9d0431cca4bc0c38b81ddb53398b074"
+      "sha256": "8ec8e4804e680b4a09cd0da38283d5a7e4d036388f0fd2a7dd91aabe017e10a1"
     },
     {
       "path": "references/authoring-toolkit.md",
@@ -74,7 +76,7 @@
     },
     {
       "path": "references/data-contracts.md",
-      "sha256": "51eb4e8eb9580877c1ca03e600c124ea32923573d2cba52000c07970f23fc2ec"
+      "sha256": "6a5c21e63cb140a190ed290f693dd349e53b7455a1a410df1991e8a16466116d"
     },
     {
       "path": "references/efficiency.md",
@@ -86,7 +88,7 @@
     },
     {
       "path": "references/fast-execution.md",
-      "sha256": "0d83958e8d642870b6bce3087dccdcc0e346ab30311242b9fb2f7c93dee606de"
+      "sha256": "82e8caee921dd7e9a1dd5bb3bd7af4183b49e57704e146a5a6acd0ce124c4317"
     },
     {
       "path": "references/figure-ending-user-requirement.txt",
@@ -238,7 +240,7 @@
     },
     {
       "path": "scripts/case_folder_delivery.py",
-      "sha256": "bef7299d6c8235a91ba9032d3a8e80729e545ab4fe9bb90fe5b24aaf79971066"
+      "sha256": "a4b74b71c3d59b01e2ebe27246e089309701ca63cb840341377234647032e8e3"
     },
     {
       "path": "scripts/cli_evidence.py",
@@ -282,7 +284,7 @@
     },
     {
       "path": "scripts/inspect_docx.py",
-      "sha256": "8058208bd075a9e9f1a838f5ee01762b52564e495e6072c15d2b22892182a324"
+      "sha256": "bd3c52931466a1deb0fdbba62350ab1e23ffc9f2cb7db848fa7070c980130b47"
     },
     {
       "path": "scripts/invention_contract.py",
@@ -370,7 +372,7 @@
     },
     {
       "path": "scripts/test_bio_package.py",
-      "sha256": "2c8416a8dceef38e2a5387998d1c3984c339e25384e2c56b47b0d15d87d3b408"
+      "sha256": "53376ac2368ef7f02a251efbd8f6b55b9269fcfdfb31e58a4b45dd6270d4124e"
     },
     {
       "path": "scripts/test_bio_presentation.py",

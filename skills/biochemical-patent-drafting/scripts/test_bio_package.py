@@ -15,6 +15,8 @@ import bio_spacing
 import bio_scripts
 import json
 import stage_bundle
+import inspect_docx
+from collections import Counter
 
 
 def sha(path): return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -35,6 +37,65 @@ class PackageTests(unittest.TestCase):
         doc.save(self.path)
         # Non-XML data must be byte-identical after normalization.
         with zipfile.ZipFile(self.path, 'a') as package: package.writestr('word/media/unchanged.bin', b'original-scientific-object')
+
+    def inspection_fixture(self):
+        """Synthetic display objects only; no user case or experimental data."""
+        self.fixture()
+        doc=Document(self.path)
+        doc.sections[0].footer.paragraphs[0].text='页脚示例'
+        doc.add_section()
+        # Repeat an explicit reference to the same header across two sections.
+        ref=doc.sections[0]._sectPr.find(qn('w:headerReference'))
+        from copy import deepcopy
+        doc.sections[-1]._sectPr.insert(0,deepcopy(ref))
+        p=doc.add_paragraph('检查颜色继承'); p.runs[0].font.color.rgb=__import__('docx.shared',fromlist=['RGBColor']).RGBColor(255,0,0)
+        doc.save(self.path)
+        with zipfile.ZipFile(self.path,'a') as z:
+            w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'
+            for name,tag in [('footnotes','footnote'),('comments','comment')]:
+                z.writestr('word/'+name+'.xml',f'<w:{name} xmlns:w="{w}"><w:{tag} w:id="1"><w:p><w:r><w:t>{tag}测试</w:t></w:r></w:p></w:{tag}></w:{name}>')
+            z.writestr('word/charts/chart1.xml','<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:p><a:r><a:t>图表标签 10⁻⁵</a:t></a:r></a:p></c:chartSpace>')
+            z.writestr('word/drawings/test.vml','<xml xmlns:v="urn:schemas-microsoft-com:vml"><v:shape><v:textpath string="测试 标签"/></v:shape></xml>')
+
+    def test_standard_inspector_parses_each_xml_member_once(self):
+        self.inspection_fixture();original=sha(self.path)
+        with zipfile.ZipFile(self.path) as z:
+            xml={hashlib.sha256(z.read(n)).hexdigest():n for n in z.namelist() if n.endswith(('.xml','.rels','.vml'))}
+        counts=Counter();parse=inspect_docx.ET.fromstring
+        def counted(payload,*args,**kwargs):
+            data=payload.encode() if isinstance(payload,str) else payload
+            name=xml.get(hashlib.sha256(data).hexdigest())
+            if name: counts[name]+=1
+            return parse(payload,*args,**kwargs)
+        with patch.object(inspect_docx.ET,'fromstring',side_effect=counted):
+            report=inspect_docx.inspect(self.path)
+        self.assertGreaterEqual(len(counts),10)
+        self.assertTrue(all(count==1 for count in counts.values()),dict(counts))
+        self.assertEqual(sha(self.path),original)
+        scans=bio_package.scan_docx(self.path)
+        for mode in ('background','native_scripts','spacing'):
+            self.assertEqual(report['biochemical_'+mode+'_evidence'],scans[mode])
+        self.assertTrue(report['text_color_evidence']['review_runs'])
+
+    def test_xml_cache_does_not_cross_inspections(self):
+        self.inspection_fixture();first=inspect_docx.inspect(self.path)
+        with zipfile.ZipFile(self.path) as z: entries=[(i,z.read(i.filename)) for i in z.infolist()]
+        with zipfile.ZipFile(self.path,'w') as z:
+            for i,data in entries:
+                z.writestr(i,data.replace('页脚示例'.encode(), '已修改页脚'.encode()) if i.filename.startswith('word/footer') else data)
+        second=inspect_docx.inspect(self.path)
+        self.assertNotEqual(first['sha256'],second['sha256'])
+        self.assertTrue(any('已修改页脚' in p['text'] for part in second['parts'] for p in part['paragraphs']))
+
+    def test_xml_reader_is_local_to_one_inspection(self):
+        self.inspection_fixture()
+        with zipfile.ZipFile(self.path) as z:
+            reader=inspect_docx.xml_reader(z)
+            with patch.object(z,'read',wraps=z.read) as read:
+                body=reader('word/document.xml')
+                self.assertIs(reader('word/document.xml'),body)
+                self.assertEqual(read.call_count,1)
+            self.assertIsNot(inspect_docx.xml_reader(z)('word/document.xml'),body)
 
     def test_single_commit_and_final_hash_preserve_objects_and_native_scripts(self):
         self.fixture()

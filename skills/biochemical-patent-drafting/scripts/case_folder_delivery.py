@@ -9,7 +9,6 @@ import unicodedata
 import batch_tool as b
 
 MODE = 'source_case_files_v1'
-POLICY = {'name_source': 'case_folder', 'layout': 'source_case_files', 'timing': 'after_each_acceptance'}
 SNAPSHOT = 'delivery-targets.snapshot.json'
 
 

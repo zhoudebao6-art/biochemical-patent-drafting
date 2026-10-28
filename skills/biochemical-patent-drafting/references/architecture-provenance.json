@@ -79,7 +79,7 @@
     {
       "file": "scripts/inspect_docx.py",
       "upstream_sha256": "84867d9e427dd126193e21dfe18273e9b371767f9c69fbb9cac2bce83ebab37b",
-      "fork_sha256": "8058208bd075a9e9f1a838f5ee01762b52564e495e6072c15d2b22892182a324",
+      "fork_sha256": "bd3c52931466a1deb0fdbba62350ab1e23ffc9f2cb7db848fa7070c980130b47",
       "byte_identical": false
     },
     {
@@ -112,7 +112,8 @@
     "v1.2.1: new batches use draft/review/revise limits 16/8/8 and total worker ceiling 32, with an in-flight case buffer of 64. Actual capacity remains explicit and may be lower. Existing scheduler/runtime code and frozen batches are unchanged; rule library v13 changes only BATCH-01, retaining 29 active rules. Scheduling regression is synthetic, not a 32-worker throughput measurement.",
     "v1.3.0: reuse bio_claims.collect in the inspection path; share source-bound preflight and standard inspection through bio_check.check_file for generated and manually edited drafts; retain check_generated and standalone CLI compatibility; remove two uncalled upstream helpers; consolidate current CLI/cache/recovery instructions. Rules v13, all 29 active rules, 16/8/8 pools, frozen batches and independent acceptance remain unchanged.",
     "v1.4.0: one claim structural pass per source-bound validation, shared with source and dependency checks; public legacy entrypoints preserved without cross-document caching. Remove unused common lock/path helpers and a stale unused check-key constant. Current README drops repeated version history. Rules v16, all 29 rules, multi-independent complete references, three pools and independent acceptance remain unchanged.",
-    "v1.5.0: reuse the atomic publisher for frozen per-case source-folder destinations and exact folder-basename DOCX filenames. New batches validate target uniqueness, original directory identity, current accepted SHA and no-overwrite receipts; original proposals and attachments remain untouched. Old frozen flat batches remain unchanged. Rule v17 updates only BATCH-02; all content checks, multi-independent references and 16/8/8 pools retained."
+    "v1.5.0: reuse the atomic publisher for frozen per-case source-folder destinations and exact folder-basename DOCX filenames. New batches validate target uniqueness, original directory identity, current accepted SHA and no-overwrite receipts; original proposals and attachments remain untouched. Old frozen flat batches remain unchanged. Rule v17 updates only BATCH-02; all content checks, multi-independent references and 16/8/8 pools retained.",
+    "v1.6.0: one scoped standard-library XML reader per inspection removes repeated style, relationship and section-header parsing; retain the separate lxml chemical scans and all evidence semantics, with no cross-inspection cache. Correct the compact-source evidence documentation and remove an unused delivery-policy constant. No new scheduler layer; rule v17, 29 rules, 16/8/8 pools and per-case-folder delivery retained."
   ],
   "biochemical_components": [
     {
@@ -165,7 +166,7 @@
     },
     {
       "file": "scripts/case_folder_delivery.py",
-      "sha256": "bef7299d6c8235a91ba9032d3a8e80729e545ab4fe9bb90fe5b24aaf79971066"
+      "sha256": "a4b74b71c3d59b01e2ebe27246e089309701ca63cb840341377234647032e8e3"
     }
   ]
 }
