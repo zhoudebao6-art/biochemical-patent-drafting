@@ -135,6 +135,8 @@ def references(head):
             else: errors.append('Invalid reference range: ' + token)
         result.append({'text':m[0],'numbers':nums,'alternative':bool(m[2]),'start':m.start(),'end':m.end()})
     if compact(head).count('权利要求') != len(result): errors.append('Unresolved claim reference')
+    numbers=[n for r in result for n in r['numbers']]
+    if len(numbers)!=len(set(numbers)): errors.append('Duplicate claim reference')
     return result, errors
 
 
@@ -148,8 +150,26 @@ def related_object_claims(obj, previous):
     return []
 
 
+def independent_reference_head(obj, numbers, number):
+    """Assemble fixed wording from explicit decisions; never choose references."""
+    if (type(number) is not int or not isinstance(numbers,list) or not numbers
+            or any(type(n) is not int or not 0<n<number for n in numbers)
+            or numbers!=sorted(set(numbers))):
+        raise ValueError('Explicit ordered distinct prior reference_claims required')
+    name=object_key(obj)
+    if not name or '权利要求' in name or '其特征在于' in name:
+        raise ValueError('Complete plain protection object required')
+    if len(numbers)>1 and numbers==list(range(numbers[0],numbers[-1]+1)):
+        expr=f'{numbers[0]}-{numbers[-1]}'
+    else:
+        expr='、'.join(map(str,numbers))
+    return '一种根据权利要求'+expr+('任意一项' if len(numbers)>1 else '')+'所述'+name
+
+
 def expected_head(c):
     if c.get('head'): return c['head']
+    if c.get('reference_claims') and c.get('parent') is None and not c.get('parents'):
+        return independent_reference_head(c['object'],c['reference_claims'],c['number'])
     return (f"根据权利要求{c['parent']}所述的" if c.get('parent') is not None else '') + c['object']
 
 
@@ -163,6 +183,7 @@ def analyze(claims, mapping=None):
         n = claim['number']; first = claim['text'].split('\n')[0]; raw = re.sub(r'^\s*\d+、', '', first)
         if FEATURE not in raw:
             errors.append(f'Claim {n} fixed wording invalid'); continue
+        error_start=len(errors)
         head = raw.split(FEATURE)[0]; refs, issues = references(head); errors.extend(issues)
         referenced = sorted({i for r in refs for i in r['numbers']})
         if any(i < 1 or i >= n or i not in numbers for i in referenced): errors.append(f'Invalid claim parent/reference {n}')
@@ -178,6 +199,8 @@ def analyze(claims, mapping=None):
         if kind == 'independent':
             if referenced and not re.match(r'^一种根据' + REF.pattern, compact(head)):
                 errors.append(f'Independent reference head requires complete fixed prefix 一种根据权利要求 {n}')
+            if not object_key(obj):
+                errors.append(f'Independent reference head requires complete protection object {n}')
             related=related_object_claims(obj,by_number)
             # User drafting convention: every independent item after the first
             # needs an explicit earlier reference, irrespective of its category.
@@ -216,6 +239,10 @@ def analyze(claims, mapping=None):
                'references':refs,'text':claim['text'],'inheritance_paths':paths,
                'paragraph_layout':layout,
                'own_limitations':claim['text'].split(FEATURE,1)[-1]}
+        if kind=='independent' and any(item['kind']=='independent' for item in rows):
+            row['reference_head_check']={'required':True,'complete':not errors[error_start:],
+                'reference_claims':referenced,'object':obj,'issues':errors[error_start:],
+                'scope':'Full fixed wording and explicit range; source object and technical relationship still require source-bound review.'}
         rows.append(row); by_number[n] = row
     return {'schema_version':1,'complete':True,'claims':rows,'independent_count':sum(r['kind']=='independent' for r in rows),
             'issues':errors,'scope':'Structural evidence; protected objects, combined restrictions and antecedents require semantic review'}

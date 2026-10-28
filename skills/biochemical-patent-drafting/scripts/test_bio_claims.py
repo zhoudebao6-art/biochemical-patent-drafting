@@ -463,4 +463,74 @@ class CompleteReferenceWordingTests(unittest.TestCase):
         self.assertFalse(analyze(claims)['issues'])
 
 
+class UniversalReferenceIntegrityTests(unittest.TestCase):
+    def test_reference_builder_keeps_actual_range_and_full_object(self):
+        from bio_claims import independent_reference_head
+        for obj in ('复合清洁材料的制备方法','复合纤维的制备方法','材料A的应用'):
+            self.assertEqual(independent_reference_head('一种'+obj,[1,2,3,4],5),
+                             '一种根据权利要求1-4任意一项所述'+obj)
+        self.assertEqual(independent_reference_head('一种材料A的应用',[1,3],5),
+                         '一种根据权利要求1、3任意一项所述材料A的应用')
+        self.assertEqual(independent_reference_head('一种方法B',[3],5),
+                         '一种根据权利要求3所述方法B')
+
+    def test_builder_never_guesses_missing_numbers_or_silently_deduplicates(self):
+        from bio_claims import independent_reference_head
+        for refs in ([],[1,1],[2,1],[0],[3],[4],[True],['1']):
+            with self.subTest(refs=refs),self.assertRaises(ValueError):
+                independent_reference_head('一种材料A的应用',refs,3)
+        for obj in ('','一种','所述','一种根据权利要求1所述材料A'):
+            with self.subTest(object=obj),self.assertRaises(ValueError):
+                independent_reference_head(obj,[1],3)
+
+    def test_reference_without_object_cannot_pass_unmapped_inspection(self):
+        claims=[IndependentReferenceTests.claim(1,'一种材料A'),
+                IndependentReferenceTests.claim(2,'一种根据权利要求1所述')]
+        self.assertTrue(any('complete protection object' in x for x in analyze(claims)['issues']))
+
+    def test_duplicate_reference_must_not_be_hidden_by_set_conversion(self):
+        claims,plan,e=fixture(2)
+        claims[2]['text']=claims[2]['text'].replace('1至2','1、1、2')
+        plan['claim_map'][2]['head']=plan['claim_map'][2]['head'].replace('1至2','1、1、2')
+        with self.assertRaisesRegex(ValueError,'Duplicate claim reference'):
+            validate_plan(claims,plan,e)
+
+    def test_missing_each_required_fragment_in_second_and_third_heads_is_blocked(self):
+        # 任一项 and 任意一项 are both accepted complete conventions; 的 is optional.
+        for index in (2,4):
+            for token in ('一种','根据','权利要求','1至2','任一项','所述','材料A','的制备方法' if index==2 else '的应用'):
+                claims,plan,e=fixture(3);old=plan['claim_map'][index]['head'];new=old.replace(token,'',1)
+                claims[index]['text']=claims[index]['text'].replace(old,new,1)
+                plan['claim_map'][index]['head']=new
+                with self.subTest(index=index,token=token),self.assertRaises(ValueError):validate_plan(claims,plan,e)
+
+    def test_source_object_and_body_cannot_be_shortened_with_matching_plan(self):
+        claims,plan,e=fixture(2)
+        claims[2]['text']=claims[2]['text'].replace('材料A的制备方法','材料A的方法')
+        plan['claim_map'][2]['head']=plan['claim_map'][2]['head'].replace('制备方法','方法')
+        plan['claim_map'][2]['object']=plan['claim_map'][2]['object'].replace('制备方法','方法')
+        with self.assertRaisesRegex(ValueError,'object differs from source'):validate_plan(claims,plan,e)
+        claims,plan,e=fixture(2);claims[2]['text']=claims[2]['text'].replace('混合组分甲','混合')
+        with self.assertRaisesRegex(ValueError,'limitations changed/missing'):validate_plan(claims,plan,e)
+
+    def test_generated_heads_keep_three_groups_and_all_steps(self):
+        from bio_claims import independent_reference_head,expected_head
+        claims,plan,e=fixture(3);before=copy.deepcopy(claims)
+        for index in (2,4):
+            p=plan['claim_map'][index];old=p.pop('head')
+            new=independent_reference_head(p['object'],p['reference_claims'],p['number'])
+            self.assertEqual(expected_head(p),new)
+            claims[index]['text']=claims[index]['text'].replace(old,new,1)
+        result=validate_plan(claims,plan,e)['structure']
+        self.assertEqual(result['independent_count'],3)
+        self.assertEqual([r['group'] for r in result['claims']],[1,1,3,3,5,5])
+        for i,row in enumerate(result['claims']):
+            self.assertEqual(row['own_limitations'],before[i]['text'].split('，其特征在于，',1)[1])
+        for i in (2,4):
+            audit=result['claims'][i]['reference_head_check']
+            self.assertTrue(audit['complete']);self.assertTrue(audit['required'])
+            self.assertEqual(audit['reference_claims'],[1,2])
+        self.assertEqual(result['claims'][5]['inheritance_paths'],[[6,5]])
+
+
 if __name__=='__main__':unittest.main()

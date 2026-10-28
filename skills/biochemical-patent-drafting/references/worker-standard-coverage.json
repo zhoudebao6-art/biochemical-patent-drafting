@@ -4,9 +4,9 @@
     "mapping-writing.md": "7b62c07819250aacb5b90fdbc31a6547ce83d0feebc85e5bed4b058a08e035c8",
     "chemistry-data.md": "e9b2cb39421a108db5f74090b1798baad270614c321e55c50a6588e6a3059311",
     "format.md": "e69cb5dc93c87f66b33715b3677757ceb54ba03ff48e0227d594ac70cb5883e8",
-    "plan-schema.md": "bf0bc5d7a069b2304ce2a7186f6d8b5920411ce2b5071f25d9d47ea20162fd9f",
-    "worker-standard.md": "35d38b6a334d7d0f2052ed14bb674e6f0f7b17248f59a071b4e24fef7045752f",
-    "claims-patterns.md": "19f7a1f8f1619aa944dcf0a499c3e785924a39259de06dbd721e92585f595b30"
+    "plan-schema.md": "f77c647c1b28d0f0844270ed10e6e387810b04de7de3e4f83a989128faae6b95",
+    "worker-standard.md": "335a99295f5fdc68d077aebaf3aafe40d38c6157a4ab21858b5d36fd53b491e5",
+    "claims-patterns.md": "5d9019d6bcd1f291f201705197eee95b6492cb5689478c2d4d3ba70c5e355cbd"
   },
-  "reviewed_scope": "Rules v15: complete mandatory prefix for referenced independent claims; no missing genju characters; source-specific ranges and separate dependency chains preserved."
+  "reviewed_scope": "Rules v16: complete reference assembly and per-item integrity evidence for every later independent claim; full source object, content and separate dependent chains retained."
 }
