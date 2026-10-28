@@ -110,7 +110,8 @@
     "v1.1.4: source-bound protection objects and candidate order, source-preserving natural claim paragraphs, single-paragraph dependent claims, numeric-unit token guard and bounded terminal transition. Reuse existing author/check modules and 29 rules; no new workflow layer or paragraph plan schema. Five real cases recovered 50 claims/72 paragraphs from deliberately malformed layout inputs.",
     "v1.2.0: compact source evidence retains identity, locators and rich-object markers while omitting duplicate body XML; bio_check uses one immutable byte snapshot, shared parsed XML and a final mutation guard; bio_author --check combines generation and existing mechanical checks with reusable same-hash inspection cache, without accepting drafts; new snapshots exclude maintenance-only math_fragments; malformed XML is a controlled handoff source error. Old CLI/evidence, all 29 rules, three pools, independent review, frozen snapshots and real-page acceptance remain unchanged.",
     "v1.2.1: new batches use draft/review/revise limits 16/8/8 and total worker ceiling 32, with an in-flight case buffer of 64. Actual capacity remains explicit and may be lower. Existing scheduler/runtime code and frozen batches are unchanged; rule library v13 changes only BATCH-01, retaining 29 active rules. Scheduling regression is synthetic, not a 32-worker throughput measurement.",
-    "v1.3.0: reuse bio_claims.collect in the inspection path; share source-bound preflight and standard inspection through bio_check.check_file for generated and manually edited drafts; retain check_generated and standalone CLI compatibility; remove two uncalled upstream helpers; consolidate current CLI/cache/recovery instructions. Rules v13, all 29 active rules, 16/8/8 pools, frozen batches and independent acceptance remain unchanged."
+    "v1.3.0: reuse bio_claims.collect in the inspection path; share source-bound preflight and standard inspection through bio_check.check_file for generated and manually edited drafts; retain check_generated and standalone CLI compatibility; remove two uncalled upstream helpers; consolidate current CLI/cache/recovery instructions. Rules v13, all 29 active rules, 16/8/8 pools, frozen batches and independent acceptance remain unchanged.",
+    "v1.4.0: one claim structural pass per source-bound validation, shared with source and dependency checks; public legacy entrypoints preserved without cross-document caching. Remove unused common lock/path helpers and a stale unused check-key constant. Current README drops repeated version history. Rules v16, all 29 rules, multi-independent complete references, three pools and independent acceptance remain unchanged."
   ],
   "biochemical_components": [
     {
@@ -123,11 +124,11 @@
     },
     {
       "file": "scripts/bio_check.py",
-      "sha256": "e8c1ba01e8291a794f590f40cbd5c700c5d3aa15a00338b1e874933400270269"
+      "sha256": "e6f9a15acfc9f15780ea62a24e8f85765b0e6105905e04d78c4a659731b66e3f"
     },
     {
       "file": "scripts/bio_claims.py",
-      "sha256": "c55e9c5a7e339f28a2625177dfd71f2a2c3cccb8720b15cc5ae5147cae84587c"
+      "sha256": "88f182ac6e3cd19a6cad17a4fc6fae152973852847a81dea2bcb9e3dad3dd64f"
     },
     {
       "file": "scripts/bio_contract.py",

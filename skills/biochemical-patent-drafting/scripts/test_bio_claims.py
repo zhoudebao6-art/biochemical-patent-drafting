@@ -533,4 +533,34 @@ class UniversalReferenceIntegrityTests(unittest.TestCase):
         self.assertEqual(result['claims'][5]['inheritance_paths'],[[6,5]])
 
 
+class SinglePassEvidenceTests(unittest.TestCase):
+    def test_full_validation_parses_once_and_retains_all_evidence(self):
+        from unittest.mock import patch
+        import bio_claims
+        claims,plan,e=fixture(3)
+        expected_structure=analyze(claims,plan['claim_map'])
+        expected_source=source_check(claims,plan['claim_map'],e)
+        with patch.object(bio_claims,'analyze',wraps=analyze) as reader:
+            result=validate_plan(claims,plan,e)
+        self.assertEqual(reader.call_count,1)
+        self.assertEqual(result,{'structure':expected_structure,'source':expected_source})
+
+    def test_legacy_source_entrypoint_also_parses_once(self):
+        from unittest.mock import patch
+        import bio_claims
+        claims,plan,e=fixture(3)
+        expected=dependency_check(claims,plan['claim_map'],e)
+        with patch.object(bio_claims,'analyze',wraps=analyze) as reader:
+            result=source_check(claims,plan['claim_map'],e)
+        self.assertEqual(reader.call_count,1);self.assertEqual(result['dependencies'],expected)
+
+    def test_no_cross_call_cache_after_claim_or_source_changes(self):
+        claims,plan,e=fixture(3);validate_plan(claims,plan,e)
+        claims[4]['text']=claims[4]['text'].replace('根据权利要求1至2任一项所述的','')
+        with self.assertRaisesRegex(ValueError,'Later independent claim'):validate_plan(claims,plan,e)
+        claims,plan,e=fixture(3);validate_plan(claims,plan,e)
+        e['body'][5]['text']='S1、另一项操作；'
+        with self.assertRaisesRegex(ValueError,'limitations changed/missing'):validate_plan(claims,plan,e)
+
+
 if __name__=='__main__':unittest.main()

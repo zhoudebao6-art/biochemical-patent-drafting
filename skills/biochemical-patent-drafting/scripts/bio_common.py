@@ -1,10 +1,8 @@
 """Small shared primitives. None of these functions attest model review."""
 from pathlib import Path
-from contextlib import contextmanager
-import hashlib, json, os, tempfile, time
+import hashlib, json, os, tempfile
 
 SKILL = Path(__file__).resolve().parents[1]
-CHECKS = ['source_support', 'antecedents', 'claims_alignment', 'chemistry_data', 'figures', 'rendered_pages']
 def sha(path):
     h=hashlib.sha256()
     with Path(path).open('rb') as f:
@@ -20,15 +18,3 @@ def write(path, data):
         os.replace(tmp,p)
     finally:
         if os.path.exists(tmp): os.unlink(tmp)
-def inside(path, root):
-    p=Path(path).resolve(); r=Path(root).resolve()
-    if not p.is_relative_to(r): raise ValueError('Path escapes work directory: '+str(p))
-    return p
-@contextmanager
-def lock(path):
-    p=Path(path)
-    try: fd=os.open(p,os.O_CREAT|os.O_EXCL|os.O_WRONLY)
-    except FileExistsError: raise ValueError('Controller lock exists; verify owner process before recovery: '+str(p))
-    os.write(fd,json.dumps({'pid':os.getpid(),'time':time.time()}).encode()); os.close(fd)
-    try: yield
-    finally: p.unlink()

@@ -1,45 +1,26 @@
 {
-  "version": "1.3.3",
+  "version": "1.4.0",
   "edition": "public-share",
   "date": "2026-10-28",
   "rule_version": 16,
   "file_count": 140,
-  "archive": "biochemical-patent-drafting-v1.3.3.zip",
-  "archive_sha256": "c455f7526abecfea97364ef187fef46bcd4ce7d4206e14f4abec0a2efaf6cbe5",
-  "source_release_zip_sha256": "d77b1228bd386eda47f5acf5ecbc798aa615a34f6fb3a03c8331e18185cb4f82",
-  "source_manifest_sha256": "cca83f1b1842e99d7be8a0310851a04516d465ecaff3b1c2d261be7d73a5c036",
-  "synced_candidate_changes": [
-    "README.md",
-    "references/architecture-provenance.json",
-    "references/claims-patterns.md",
-    "references/plan-schema.md",
-    "references/rules.json",
-    "references/worker-standard-coverage.json",
-    "references/worker-standard.md",
-    "scripts/bio_claims.py",
-    "scripts/test_bio_claims.py",
-    "scripts/test_three_stage_pools.py",
-    "SKILL.md"
-  ],
+  "archive": "biochemical-patent-drafting-v1.4.0.zip",
+  "archive_sha256": "e903d88c7fe14be05bcf0a9594bd9e5544bf9d14867c2104c7de8c81ee6300ca",
+  "source_release_zip_sha256": "30ef22a2ad8a4c2469c84031d6c7b680c6f19700bbe1d4047f6184e8112a41be",
   "new_machine_setup_required": true,
-  "protected_public_materials_unchanged_except_claim_guide": true,
   "checks": {
-    "total_tests": 257,
+    "total_tests": 260,
     "test_groups": {
-      "biochemical-tests.log": 120,
+      "biochemical-tests.log": 127,
       "integration-tests.log": 133
     },
     "source_install_zip_identity": true,
-    "other_28_rules_unchanged": true,
-    "policy_runtime_template_unchanged": true,
+    "rules_policy_runtime_template_unchanged": true,
     "softtech_skill_unchanged": true,
-    "real_case_missing_reference_blocked": true,
-    "complete_header_builder_verified": true,
-    "real_case_generation_probe_passed": true,
-    "five_sample_reports_unchanged": true,
+    "real_document_equivalence": true,
     "paid_model_calls": 0,
-    "public_targeted_tests": 79,
-    "zip_crc_and_all_file_hashes": "passed",
+    "throughput_measurement": false,
+    "public_targeted_tests": 82,
     "public_runtime_unconfigured_and_rejected": true
   },
   "files": [
@@ -57,15 +38,15 @@
     },
     {
       "path": "README.md",
-      "sha256": "543a6f19eeb26358045680f678c106e22ed482c7e2dfbe5d522aab5d30bd081d"
+      "sha256": "3acec5edae9572c036e4837e7002e78db9f33fe8e6c2b489516a5b2cbf000c6c"
     },
     {
       "path": "references/architecture-provenance.json",
-      "sha256": "eea1c1ef9689baa49ec704dac6408cdc9ce4d85c7b52ff11a34615eadfdc8918"
+      "sha256": "cb5816b9cc601682c2692b2bdcc38162635458c3f7c9bc9a7e260976b29545fa"
     },
     {
       "path": "references/authoring-toolkit.md",
-      "sha256": "5c2843fe8d0ffa99e3a19aec9712e562b77822a41ad67dcc235e6304ac8241a4"
+      "sha256": "ddf2301835c4d47dbc030a1304a2354aec713050332d80605a513c4b99609c22"
     },
     {
       "path": "references/background-user-requirement.txt",
@@ -213,15 +194,15 @@
     },
     {
       "path": "scripts/bio_check.py",
-      "sha256": "e8c1ba01e8291a794f590f40cbd5c700c5d3aa15a00338b1e874933400270269"
+      "sha256": "e6f9a15acfc9f15780ea62a24e8f85765b0e6105905e04d78c4a659731b66e3f"
     },
     {
       "path": "scripts/bio_claims.py",
-      "sha256": "c55e9c5a7e339f28a2625177dfd71f2a2c3cccb8720b15cc5ae5147cae84587c"
+      "sha256": "88f182ac6e3cd19a6cad17a4fc6fae152973852847a81dea2bcb9e3dad3dd64f"
     },
     {
       "path": "scripts/bio_common.py",
-      "sha256": "0381ca69eb4c92ac3d4f55e4970ff94dc590f4fbefc07ccae6caddffafdd4c02"
+      "sha256": "b53935e03fa7308383d1b9ae70937042d79de99e8a3d8ad0fd1ecdd5ab43c48d"
     },
     {
       "path": "scripts/bio_contract.py",
@@ -377,7 +358,7 @@
     },
     {
       "path": "scripts/test_bio_claims.py",
-      "sha256": "7b0b1229acdc42da358701b939483e8f8dabc8c417ad42e8186f0c4553636c24"
+      "sha256": "74d31832613cf3e5db0394de4bebcee3763b5a4307ff2a3dac5ad114f11e527d"
     },
     {
       "path": "scripts/test_bio_layout.py",

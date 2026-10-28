@@ -41,13 +41,13 @@ def inspect(path,plan=None,evidence=None):
     if len(parts)==5:
         claims='\n'.join(text(n) for n in parts[2]); elsewhere='\n'.join(text(n) for part in parts[:2]+parts[3:] for n in part)
         if '其特征在于' in elsewhere: errors.append('Feature phrase outside claims')
-        from bio_claims import collect,analyze,source_check
+        from bio_claims import collect,evaluate
         detected=collect([{'text':text(n),'p':i,'manual_breaks':len(n.xpath('.//w:br | .//w:cr | .//w:tab'))} for i,n in enumerate(parts[2])])
         nums=[c['number'] for c in detected]
-        claim_structure=analyze(detected,plan['claim_map'] if plan else None)
+        claim_result=evaluate(detected,plan['claim_map'] if plan else None,evidence if plan and evidence else None)
+        claim_structure=claim_result['structure'];claim_source=claim_result['source']
         errors.extend(claim_structure['issues'])
-        if plan and evidence:
-            claim_source=source_check(detected,plan['claim_map'],evidence);errors.extend(claim_source['issues'])
+        if claim_source is not None:errors.extend(claim_source['issues'])
         for h in ['技术领域','背景技术','发明内容','附图说明','具体实施方式']:
             if not any(text(n).strip()==h for n in parts[3]): errors.append('Missing description heading '+h)
         if plan:

@@ -248,13 +248,13 @@ def analyze(claims, mapping=None):
             'issues':errors,'scope':'Structural evidence; protected objects, combined restrictions and antecedents require semantic review'}
 
 
-def dependency_check(claims, mapping, evidence):
+def _dependency_check(mapping, evidence, structure):
     """Verify declared inherited limitations against source and actual paths.
 
     The author identifies the technical needs; this check never infers them from
     noun occurrence, proximity, or sample numbering. Every alternative is separate.
     """
-    structure=analyze(claims);actual={c['number']:c for c in structure['claims']}
+    actual={c['number']:c for c in structure['claims']}
     plans={c['number']:c for c in mapping};source={r['body_index']:r for r in evidence['body']}
     errors=[];records=[]
     for n,item in actual.items():
@@ -298,12 +298,12 @@ def dependency_check(claims, mapping, evidence):
             'scope':'Source and path consistency of declared needs; not autonomous technical parent selection or semantic acceptance.'}
 
 
-def source_check(claims, mapping, evidence):
+def _source_check(claims, mapping, evidence, structural):
     """Compare complete selected source limitations, not just claim headers/counts."""
     errors = []; rows = {r['body_index']:r for r in evidence['body']}
     cs = candidates(evidence['body']); covered = []; records = []
     actual = {c['number']:c for c in claims}
-    structure={c['number']:c for c in analyze(claims)['claims']}
+    structure={c['number']:c for c in structural['claims']}
     for p in mapping:
         n = p['number']; ids = p.get('source_body_indices',[])
         if any(type(i) is not int or i not in rows for i in ids):
@@ -354,13 +354,31 @@ def source_check(claims, mapping, evidence):
                         'explicit_wording_edits':edits,'semantic_review_required':True})
     if sorted(covered)!=list(range(1,len(cs)+1)): errors.append('Source claim candidates missing/duplicated; do not add or omit objects to fit a count')
     elif covered!=list(range(1,len(cs)+1)):errors.append('Source claim candidate order changed; retain the supplied technical sequence')
-    dependencies=dependency_check(claims,mapping,evidence);errors.extend(dependencies['issues'])
+    dependencies=_dependency_check(mapping,evidence,structural);errors.extend(dependencies['issues'])
     return {'schema_version':1,'source_sha256':evidence['source']['sha256'],'records':records,'issues':errors,'dependencies':dependencies,
             'scope':'Full candidate text comparison; explicit wording edits remain unaccepted until independent review'}
 
 
+def dependency_check(claims, mapping, evidence):
+    """Compatibility entrypoint; structure is local to this call, never cached."""
+    return _dependency_check(mapping,evidence,analyze(claims))
+
+
+def source_check(claims, mapping, evidence):
+    """Standalone source comparison shares its structural pass with dependencies."""
+    return _source_check(claims,mapping,evidence,analyze(claims))
+
+
+def evaluate(claims, mapping=None, evidence=None):
+    """Compute all requested evidence from one current claim structure."""
+    structure=analyze(claims,mapping)
+    source=_source_check(claims,mapping,evidence,structure) if mapping is not None and evidence is not None else None
+    return {'structure':structure,'source':source}
+
+
 def validate_plan(claims, plan, evidence):
-    structural = analyze(claims,plan['claim_map']); source = source_check(claims,plan['claim_map'],evidence)
+    result=evaluate(claims,plan['claim_map'],evidence)
+    structural=result['structure'];source=result['source']
     errors = structural['issues'] + source['issues']
     if errors: raise ValueError('Biochemical claim plan: ' + '; '.join(errors))
     return {'structure':structural,'source':source}
