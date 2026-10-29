@@ -12,7 +12,7 @@ description: 从生物、化学、材料及环境类技术项目优化书撰写�
 只处理packet指定本案、attempt和阶段，不再启动CLI、批次或子代理；只写当前attempt，其他案件、来源、manifest和冻结工具只读。
 
 - 有prepared.pipeline时，按stage_read_parts完整读各不重叠块一次，截断只补缺失部分。阶段包已含规则及工作规范，不再重读整个SKILL/rules或已包含的参考文件；宿主指令和documents技能仍适用。
-- draft/revise按[生化生成器](references/authoring-toolkit.md)使用源绑定计划与五分区模板。原生上下标、无底色、无空格、逐表说明、完整实施例引导等由既有规则和同稿检查统一执行，不套软通生成默认值。
+- draft/revise按[生化生成器](references/authoring-toolkit.md)使用源绑定计划与五分区模板。原生上下标、无底色、无空格、无装饰黑点及干净预览、逐表说明、完整实施例引导等由既有规则和同稿检查统一执行，不套软通生成默认值。
 - review只读集中报告，revise修改后由新会话review独立重验；保留六项审查。按冻结review_reuse核差异及依赖，只继承真实且未受影响的已通过范围；所有当前页必须有实查覆盖。
 - 最后按[回执](references/worker-receipt.md)用prepared.receipt_tool提交一次真实回执；未做项not_run，不自签pass，不把检查器成功当语义通过。
 

@@ -255,7 +255,7 @@ class CurrentDefaultPoolTests(unittest.TestCase):
             self.assertEqual(manifest['policy']['stage_pools'], {'draft': 16, 'review': 8, 'revise': 8})
             self.assertEqual(manifest['policy']['concurrency']['target_workers'], 32)
             self.assertEqual(manifest['policy']['concurrency']['max_in_flight_cases'], 64)
-            self.assertEqual(b.read(path.parent / 'rules.snapshot.json')['version'], 18)
+            self.assertEqual(b.read(path.parent / 'rules.snapshot.json')['version'], 19)
             self.assertEqual(queue.reserve(path, 32)['attempt']['stage'], 'draft')
 
 class ThreePoolPolicyTests(unittest.TestCase):

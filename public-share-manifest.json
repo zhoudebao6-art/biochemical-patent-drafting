@@ -1,12 +1,12 @@
 {
-  "version": "1.7.0",
+  "version": "1.7.1",
   "edition": "public-share",
-  "date": "2026-10-28",
-  "rule_version": 18,
+  "date": "2026-10-29",
+  "rule_version": 19,
   "file_count": 142,
-  "archive": "biochemical-patent-drafting-v1.7.0.zip",
-  "archive_sha256": "5dd24666651e1e9cbd62b82faff3ea13937c6397e25a17324442a23582f74612",
-  "source_release_zip_sha256": "347b894e66d971596345857935902283f7b9d2d343111c1ad4eb32c6afb40275",
+  "archive": "biochemical-patent-drafting-v1.7.1.zip",
+  "archive_sha256": "b0700d321e926dcf04251e4fa0aedbe7ec78e0fbbc6cd456273795358f0d206e",
+  "source_release_zip_sha256": "99f39b007bfddcba5ebcb96921070b0a27907e351acf3310934dc3eb9f462a21",
   "new_machine_setup_required": true,
   "checks": {
     "total_tests": 296,
@@ -15,7 +15,7 @@
       "integration-tests.log": 154
     },
     "source_install_zip_identity": true,
-    "rules_policy_runtime_template_unchanged": true,
+    "rules_policy_runtime_template_unchanged": false,
     "softtech_skill_unchanged": true,
     "real_document_equivalence": false,
     "validation_material": "Synthetic software fixtures only; no original project documents, human finals or chat data collected for model evaluation or training.",
@@ -39,7 +39,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "266eb8f31661f187262171f552b254397e56b6f693d9bdabf89ef5d57527c10f"
+      "sha256": "4090a8855a101b107dcbc16512264a33a1389341a6cc302cf6b211184b716afb"
     },
     {
       "path": "references/architecture-provenance.json",
@@ -47,7 +47,7 @@
     },
     {
       "path": "references/authoring-toolkit.md",
-      "sha256": "0ea3ca8d352dc37b7c43fad9dcc8fd40a92fcae4342e86efb57e3df5023d5342"
+      "sha256": "b2893cb290fafcea6ce65fdc218405c0f46a6b5e51567b3f8a7bca83dbe1ee05"
     },
     {
       "path": "references/background-user-requirement.txt",
@@ -131,7 +131,7 @@
     },
     {
       "path": "references/rules.json",
-      "sha256": "bcd7963491d8224f5a6f62a3f493b91ee9a7ec8c899a94f241d988e0221fc0db"
+      "sha256": "9e6ebd1b94535159c54350b54683f17819937d5ccf002556caef35fd01ae577e"
     },
     {
       "path": "references/runtime.json",
@@ -167,7 +167,7 @@
     },
     {
       "path": "references/worker-standard-coverage.json",
-      "sha256": "77a838ba57f8ca9eb0fa1f67c1416f8816488aa1ef2a259f34eee61d9fbdd534"
+      "sha256": "6189fb37bda563e04e4101eed9de9903a3af6d279ddef632ee2984676ee33c02"
     },
     {
       "path": "references/worker-standard.md",
@@ -559,7 +559,7 @@
     },
     {
       "path": "scripts/test_three_stage_pools.py",
-      "sha256": "3526fdefed1844bc3ac941fb16e965cabfa9e6b817b62ac1e49ae3b8abc6d2ea"
+      "sha256": "3c3cb86dfb15654ae6ddd5deaaf7990214bee61c2a3ceadd7ae764565db3644c"
     },
     {
       "path": "scripts/test_title_identity.py",
@@ -591,7 +591,7 @@
     },
     {
       "path": "SKILL.md",
-      "sha256": "4b1781f36429d289d2f4e6a3199ee4c9e3129c740457056c1b76667d5abe3d18"
+      "sha256": "b12ec9af44211f050275f0f96e057cd8d90eacf2f66ed2f7cbe99a0d75e852e2"
     }
   ]
 }
