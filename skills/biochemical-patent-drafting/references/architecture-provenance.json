@@ -118,7 +118,7 @@
   "biochemical_components": [
     {
       "file": "scripts/bio_author.py",
-      "sha256": "578b0d5e43614754e6de3705ee048c07344d6c5f30c158cbfc700d1e885e0f97"
+      "sha256": "d8ab9da6a878eed43ff8344707f80fde71deb26955c1d2f5e99f8ecd4214782a"
     },
     {
       "file": "scripts/bio_prepare.py",
@@ -134,7 +134,7 @@
     },
     {
       "file": "scripts/bio_contract.py",
-      "sha256": "943c078ea1954cadbe60eec4997863d3e8e3ebd80b8dd58ce296c53e1fbc9dda"
+      "sha256": "ba0d7c3f35b870437b67782708f894c8fc80620a59b128da2b8abbba6694f703"
     },
     {
       "file": "scripts/bio_inspection.py",
@@ -142,7 +142,7 @@
     },
     {
       "file": "scripts/bio_layout.py",
-      "sha256": "343c4950c88ff2cdf5fee5fd9af986f0eafe06de7dbcd4c78764094c7e0116ed"
+      "sha256": "79dbb5c9fe9f99d378b50b46de1c43d5030d25c7cc4127704856b4db373c01c8"
     },
     {
       "file": "scripts/bio_presentation.py",

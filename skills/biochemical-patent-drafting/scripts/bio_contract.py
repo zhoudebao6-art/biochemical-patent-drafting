@@ -10,6 +10,8 @@ def check(report,title,findings=(),source_reports=None,require_example_sources=F
         if ev.get('schema_version')!=1 or ev.get('complete') is not True or ev.get('artifact_sha256')!=report.get('sha256') or ev.get('issues'):
             raise b.BatchError('Biochemical format evidence missing, stale or has layout issues: '+key)
     presentation=report['biochemical_presentation_evidence']
+    if report['biochemical_table_evidence'].get('width_contract_version')!=1:
+        raise b.BatchError('Biochemical table width evidence missing')
     if presentation.get('prose_flow_contract_version')!=1 or not isinstance(presentation.get('prose_flow_checked_body_indices'),list):
         raise b.BatchError('Biochemical continuous prose flow evidence missing')
     if presentation.get('examples_contract_version')!=1 or not isinstance(presentation.get('examples'),list):

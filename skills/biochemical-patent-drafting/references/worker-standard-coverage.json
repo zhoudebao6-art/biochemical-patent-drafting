@@ -8,5 +8,5 @@
     "worker-standard.md": "335a99295f5fdc68d077aebaf3aafe40d38c6157a4ab21858b5d36fd53b491e5",
     "claims-patterns.md": "5d9019d6bcd1f291f201705197eee95b6492cb5689478c2d4d3ba70c5e355cbd"
   },
-  "reviewed_scope": "Rules v19: BIO-24 additionally distinguishes decorative content from nonprinting editor marks and preserves required pagination; all domain reference inventories retained. Stage packets include the updated rule and the authoring-toolkit reference."
+  "reviewed_scope": "Rules v20: BIO-22 adds content-aware column widths, unchanged font/content and current-SHA width evidence; all domain reference inventories retained. Stage packets include the updated rule and the authoring-toolkit reference."
 }

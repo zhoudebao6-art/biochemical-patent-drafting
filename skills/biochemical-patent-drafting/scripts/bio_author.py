@@ -12,7 +12,7 @@ from docx.opc.packuri import PackURI
 from lxml import etree as ET
 from bio_common import SKILL, read, write, sha
 from bio_prepare import text
-from bio_layout import normalize_plan, table_format, summary_format, SUMMARY
+from bio_layout import normalize_plan, table_format, summary_format, section_content_width, SUMMARY
 from bio_presentation import paragraph_role, normalize_prose_flow
 
 SLOTS=['abstract','abstract_figure','claims','description','figures']
@@ -123,6 +123,7 @@ def build(evidence_path,plan_path,output):
     from bio_claims import collect, validate_plan
     claim_paragraphs=[];claim_layout_changes=[]
     src=Document(srcpath); dest=Document(SKILL/'assets/patent-template.docx'); imported={}; trace=[]
+    table_widths={slot:section_content_width(section._sectPr) for slot,section in zip(SLOTS,dest.sections)}
     for name in ('BioFigureAnalysis','BioResultsHeading','BioTechnicalSummary'):
         if name not in dest.styles:
             style=dest.styles.add_style(name,WD_STYLE_TYPE.PARAGRAPH);style.base_style=dest.styles['Normal']
@@ -194,7 +195,7 @@ def build(evidence_path,plan_path,output):
                     for x in n.xpath('.//a:xfrm/a:ext'): x.set('cx',str(nx)); x.set('cy',str(ny))
         else:
             for p in n.xpath('.//w:p'): format_p(p,'table')
-            trace[-1]['table_layout']=table_format(n,block.get('table_header_rows'))
+            trace[-1]['table_layout']=table_format(n,block.get('table_header_rows'),table_widths[slot])
         return n
     for slot in SLOTS:
         marker=next(p for p in dest.paragraphs if p.text=='BIO_SLOT_'+slot.upper())

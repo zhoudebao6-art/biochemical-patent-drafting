@@ -1,17 +1,17 @@
 {
-  "version": "1.7.1",
+  "version": "1.7.2",
   "edition": "public-share",
-  "date": "2026-10-29",
-  "rule_version": 19,
+  "date": "2026-10-30",
+  "rule_version": 20,
   "file_count": 142,
-  "archive": "biochemical-patent-drafting-v1.7.1.zip",
-  "archive_sha256": "b0700d321e926dcf04251e4fa0aedbe7ec78e0fbbc6cd456273795358f0d206e",
-  "source_release_zip_sha256": "99f39b007bfddcba5ebcb96921070b0a27907e351acf3310934dc3eb9f462a21",
+  "archive": "biochemical-patent-drafting-v1.7.2.zip",
+  "archive_sha256": "8378dc6b2bce297dfd79696aa8788e44adfb8459bb19b7d27aa50061c235d17f",
+  "source_release_zip_sha256": "009f42705c65c22859959f01d0638db6ca5899cdf8a6467857aa7942ac6cc735",
   "new_machine_setup_required": true,
   "checks": {
-    "total_tests": 296,
+    "total_tests": 304,
     "test_groups": {
-      "biochemical-tests.log": 142,
+      "biochemical-tests.log": 150,
       "integration-tests.log": 154
     },
     "source_install_zip_identity": true,
@@ -21,7 +21,7 @@
     "validation_material": "Synthetic software fixtures only; no original project documents, human finals or chat data collected for model evaluation or training.",
     "paid_model_calls": 0,
     "throughput_measurement": false,
-    "public_targeted_tests": 149,
+    "public_targeted_tests": 165,
     "public_runtime_unconfigured_and_rejected": true
   },
   "files": [
@@ -39,15 +39,15 @@
     },
     {
       "path": "README.md",
-      "sha256": "4090a8855a101b107dcbc16512264a33a1389341a6cc302cf6b211184b716afb"
+      "sha256": "eb48b8251d424cdba6727a3e788b3cddad540618a4f116d19cdaca4ae57a3e85"
     },
     {
       "path": "references/architecture-provenance.json",
-      "sha256": "7947d8951386fec7bcb48c652ede7f081ed957dcf7aa123ce2e9670d5bc87fe7"
+      "sha256": "9f509fb2f1fa3526653c28414618d1159d8ea01ca43584dfae71ca6040f319c5"
     },
     {
       "path": "references/authoring-toolkit.md",
-      "sha256": "b2893cb290fafcea6ce65fdc218405c0f46a6b5e51567b3f8a7bca83dbe1ee05"
+      "sha256": "6b2545bac22a06b469afea0f25fdce0e3fbb7ea0c47880d67b30261703844940"
     },
     {
       "path": "references/background-user-requirement.txt",
@@ -131,7 +131,7 @@
     },
     {
       "path": "references/rules.json",
-      "sha256": "9e6ebd1b94535159c54350b54683f17819937d5ccf002556caef35fd01ae577e"
+      "sha256": "84d25df81489dc16dd32ef5956cb525f9ebd077a65a043f751786ff2d4251f32"
     },
     {
       "path": "references/runtime.json",
@@ -147,7 +147,7 @@
     },
     {
       "path": "references/tables-analysis-summary.md",
-      "sha256": "afae92d863e456aee7a814e3af21cfc8d3e291555b2455b24c005f53258dd38c"
+      "sha256": "1980b1f44a778fe1e30ae475d4edd93370a8c3223af1e09192c30e4235cf88cf"
     },
     {
       "path": "references/three-stage-pools.md",
@@ -167,7 +167,7 @@
     },
     {
       "path": "references/worker-standard-coverage.json",
-      "sha256": "6189fb37bda563e04e4101eed9de9903a3af6d279ddef632ee2984676ee33c02"
+      "sha256": "4531752a4aabf034f2c2c8fc0071092da61197a4daf7a11bed487d04f9394837"
     },
     {
       "path": "references/worker-standard.md",
@@ -187,7 +187,7 @@
     },
     {
       "path": "scripts/bio_author.py",
-      "sha256": "578b0d5e43614754e6de3705ee048c07344d6c5f30c158cbfc700d1e885e0f97"
+      "sha256": "d8ab9da6a878eed43ff8344707f80fde71deb26955c1d2f5e99f8ecd4214782a"
     },
     {
       "path": "scripts/bio_background.py",
@@ -207,7 +207,7 @@
     },
     {
       "path": "scripts/bio_contract.py",
-      "sha256": "943c078ea1954cadbe60eec4997863d3e8e3ebd80b8dd58ce296c53e1fbc9dda"
+      "sha256": "ba0d7c3f35b870437b67782708f894c8fc80620a59b128da2b8abbba6694f703"
     },
     {
       "path": "scripts/bio_inspection.py",
@@ -215,7 +215,7 @@
     },
     {
       "path": "scripts/bio_layout.py",
-      "sha256": "343c4950c88ff2cdf5fee5fd9af986f0eafe06de7dbcd4c78764094c7e0116ed"
+      "sha256": "79dbb5c9fe9f99d378b50b46de1c43d5030d25c7cc4127704856b4db373c01c8"
     },
     {
       "path": "scripts/bio_package.py",
@@ -367,7 +367,7 @@
     },
     {
       "path": "scripts/test_bio_layout.py",
-      "sha256": "ef538a381265d1d579a2869f3ebeba8af2f2c4b28422b4c6a45eb409ee4228ef"
+      "sha256": "3a0b7703224a96fa74381bd47423d17bed801f0f518081a0ef8c15a378dde8c3"
     },
     {
       "path": "scripts/test_bio_package.py",
@@ -559,7 +559,7 @@
     },
     {
       "path": "scripts/test_three_stage_pools.py",
-      "sha256": "3c3cb86dfb15654ae6ddd5deaaf7990214bee61c2a3ceadd7ae764565db3644c"
+      "sha256": "0b14cb34fadf0990115be4daad977fe8fda83748b2d293b0d037dbcfeeaacd1c"
     },
     {
       "path": "scripts/test_title_identity.py",

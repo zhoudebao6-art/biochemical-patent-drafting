@@ -7,7 +7,7 @@ from lxml import etree as ET
 import test_biochemical as fixtures
 from bio_common import read,write
 from bio_author import build,replace_text,format_p
-from bio_layout import table_format,table_evidence,normalize_plan,summary_format,analysis_evidence,visible
+from bio_layout import table_format,table_evidence,normalize_plan,summary_format,analysis_evidence,visible,table_width_plan,section_content_width
 import inspect_docx,bio_contract,batch_tool
 
 class LayoutTests(unittest.TestCase):
@@ -82,4 +82,94 @@ class LayoutTests(unittest.TestCase):
                 elif mutation=='stale':bad[key]['artifact_sha256']='0'*64
                 else:bad[key]['complete']=False
                 with self.assertRaises(batch_tool.BatchError):bio_contract.check(bad,f.e['title_candidate'])
+
+    def text_table(self,values):
+        d=Document();t=d.add_table(rows=len(values),cols=len(values[0]))
+        for row,strings in zip(t.rows,values):
+            for cell,value in zip(row.cells,strings):cell.text=value
+        for p in t._tbl.xpath('.//w:p'):format_p(p,'table')
+        return d,t
+
+    def test_short_identifier_yields_width_to_long_description_without_content_changes(self):
+        d,t=self.text_table([['样品','观察说明'],['实施例123','吸收区域清晰，主峰位置保持一致，谱带连续且无异常。']])
+        before=[ET.tostring(p) for p in t._tbl.xpath('.//w:p/w:r')]
+        available=section_content_width(d.sections[0]._sectPr)
+        result=table_format(t._tbl,available_twips=available)['width_plan']
+        a,b=result['column_widths_twips']
+        self.assertLess(a,b/2);self.assertEqual(a+b,available)
+        self.assertFalse(result['estimated_wrapping_columns'])
+        self.assertEqual(before,[ET.tostring(p) for p in t._tbl.xpath('.//w:p/w:r')])
+        self.assertFalse(table_evidence(d.element,'sha')['issues'])
+
+    def test_numeric_and_native_script_columns_keep_units_and_readable_size(self):
+        d,t=self.text_table([['样品','指标A','单位'],['对比例12','1.234±0.005','cm']])
+        run=t.cell(1,2).paragraphs[0].add_run('3');run.font.superscript=True
+        for p in t._tbl.xpath('.//w:p'):format_p(p,'table')
+        scripts=ET.tostring(run._r);data=visible(t._tbl)
+        plan=table_format(t._tbl,available_twips=8640)['width_plan']
+        self.assertFalse(plan['estimated_wrapping_columns'])
+        self.assertEqual(visible(t._tbl),data);self.assertEqual(ET.tostring(run._r),scripts)
+        self.assertTrue(all(r.get(qn('w:val'))=='24' for r in t._tbl.xpath('.//w:sz')))
+
+    def test_content_that_cannot_fit_still_wraps_without_shrinking_or_no_wrap(self):
+        d,t=self.text_table([['样品','观察说明'],['实施例1','保留完整文字。'*30]])
+        pr=t.cell(1,1)._tc.get_or_add_tcPr()
+        pr.append(OxmlElement('w:noWrap'));pr.append(OxmlElement('w:tcFitText'))
+        original=visible(t._tbl)
+        result=table_format(t._tbl,available_twips=8640)['width_plan']
+        self.assertEqual(result['estimated_wrapping_columns'],[1])
+        self.assertEqual(sum(result['column_widths_twips']),8640)
+        self.assertEqual(visible(t._tbl),original)
+        self.assertFalse(table_evidence(d.element,'sha')['issues'])
+
+    def test_manual_line_break_and_distinct_paragraphs_survive(self):
+        d,t=self.text_table([['样品','说明'],['实施例1','第一项']])
+        t.cell(1,1).paragraphs[0].add_run().add_break()
+        t.cell(1,1).paragraphs[0].add_run('第二项')
+        t.cell(1,1).add_paragraph('独立说明')
+        table_format(t._tbl,available_twips=8640)
+        self.assertEqual(len(t._tbl.xpath('.//w:br')),1)
+        self.assertEqual(len(t.cell(1,1).paragraphs),2)
+
+    def test_rich_and_merged_tables_do_not_get_guessed_widths(self):
+        d,t=self.text_table([['合并表头',''],['A','B']]);t.cell(0,0).merge(t.cell(0,1))
+        original=ET.tostring(t._tbl.tblGrid)
+        self.assertEqual(table_format(t._tbl,available_twips=8640)['width_plan']['mode'],'source_geometry_requires_review')
+        self.assertEqual(ET.tostring(t._tbl.tblGrid),original)
+        d,t=self.text_table([['样品','公式'],['A','']])
+        t.cell(1,1).paragraphs[0]._p.append(OxmlElement('m:oMath'))
+        original=ET.tostring(t._tbl.tblGrid)
+        self.assertEqual(table_width_plan(t._tbl,8640)['reason'],'rich_or_generated_content')
+        table_format(t._tbl,available_twips=8640)
+        self.assertEqual(ET.tostring(t._tbl.tblGrid),original)
+
+    def test_reformat_is_idempotent_and_keeps_repeated_header(self):
+        d,t=self.text_table([['样品','长说明'],['A','保持所有文字与边框结构。']])
+        table_format(t._tbl,available_twips=8640);original=ET.tostring(t._tbl)
+        table_format(t._tbl,available_twips=8640)
+        self.assertEqual(ET.tostring(t._tbl),original)
+        self.assertEqual(table_evidence(d.element,'sha')['tables'][0]['header_rows'],[0])
+
+    def test_inspection_detects_grid_drift_overflow_and_forced_fit(self):
+        d,t=self.text_table([['样品','说明'],['A','普通文字']]);table_format(t._tbl,available_twips=8640)
+        t.cell(1,1)._tc.get_or_add_tcPr().find(qn('w:tcW')).set(qn('w:w'),'400')
+        t.cell(1,0)._tc.get_or_add_tcPr().find(qn('w:noWrap')).set(qn('w:val'),'1')
+        t._tbl.tblGrid[0].set(qn('w:w'),'99999')
+        ev=table_evidence(d.element,'sha')
+        self.assertTrue({'table_exceeds_section_width','cell_grid_width_mismatch','forced_cell_text_fit'} <= {i['code'] for i in ev['issues']})
+        # Both the preflight (lxml) and inspector (stdlib XML) paths must agree.
+        import xml.etree.ElementTree as StdET
+        self.assertEqual(ev,table_evidence(StdET.fromstring(ET.tostring(d.element)),'sha'))
+
+    def test_width_contract_required_and_generator_records_actual_section_width(self):
+        f=self.fixture();out=f.build()
+        trace=read(out.with_suffix('.trace.json'))
+        layouts=[b['table_layout']['width_plan'] for b in trace['blocks'] if 'table_layout' in b]
+        self.assertTrue(layouts)
+        width=section_content_width(Document(out).sections[3]._sectPr)
+        self.assertTrue(all(p['available_width_twips']==width for p in layouts if p['mode']=='content_balanced'))
+        report=read(inspect_docx.run_inspection(out,f.root/'inspection','draft',True,True)['inspection'])
+        bio_contract.check(report,f.e['title_candidate'])
+        report['biochemical_table_evidence'].pop('width_contract_version')
+        with self.assertRaises(batch_tool.BatchError):bio_contract.check(report,f.e['title_candidate'])
 if __name__=='__main__':unittest.main()
