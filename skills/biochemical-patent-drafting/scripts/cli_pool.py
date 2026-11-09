@@ -24,6 +24,47 @@ def emit(data):
     print(json.dumps(data, ensure_ascii=False), flush=True)
 
 
+def prompt_context(reserved):
+    """Keep paid prompt context small. The sealed handoff remains authoritative."""
+    attempt = reserved.get('attempt') or {}
+    context = reserved['worker_context']
+    prepared = context.get('prepared') or {}
+    review = context.get('latest_review')
+    if isinstance(review, dict):
+        review = {key: review.get(key) for key in (
+            'stage', 'verdict', 'reviewed_sha256', 'findings', 'checks', 'render'
+        ) if key in review}
+    compact = {
+        'title': context.get('title'),
+        'context': context.get('context'),
+        'case_directory': context.get('case_directory'),
+        'writable_directory': context.get('writable_directory'),
+        'primary_snapshot': context.get('primary_snapshot'),
+        'input_artifact': context.get('input_artifact'),
+        'input_artifact_sha256': context.get('input_artifact_sha256'),
+        'review_mode': context.get('review_mode'),
+        'review_reuse': context.get('review_reuse'),
+        'prepared_handoff': (str(Path(attempt['directory']) / 'prepared' / 'handoff.json')
+                             if attempt.get('directory') else '<attempt>/prepared/handoff.json'),
+        'latest_review': review,
+        'receipt_path': context.get('receipt_path'),
+    }
+    if prepared.get('pipeline'):
+        pipeline = prepared['pipeline']
+        compact['pipeline'] = {
+            key: pipeline[key] for key in (
+                'root', 'stage_guide', 'math_guide', 'toolkit', 'toolkit_guide',
+                'rules_active', 'execution_optimization', 'stage_read_parts'
+            ) if key in pipeline
+        }
+    compact['sources'] = [
+        {'original_path': row.get('original_path'), 'sha256': row.get('sha256'),
+         'snapshot_path': row.get('snapshot_path')}
+        for row in reserved.get('source_snapshots', [])
+    ]
+    return compact
+
+
 def write_new(path, data):
     path = Path(path)
     temp = path.with_name('.'+path.name+'.'+uuid.uuid4().hex+'.tmp')
@@ -112,8 +153,7 @@ def worker_prompt(reserved):
 工具运行中用对应等待工具等30至60秒，不重复启动或高频短轮询。合并独立只读操作，只输出必要定位。
 最后仅输出真实JSON回执，不输出正文，不写worker-final.json或receipt.json；未做项写not_run，未解决问题不得pass。{review_result_instruction}
 {receipt_instruction}回执模板：{json.dumps(template, ensure_ascii=False)}
-本案上下文：{json.dumps(reserved['worker_context'], ensure_ascii=False)}
-来源快照：{json.dumps(reserved['source_snapshots'], ensure_ascii=False)}
+本案上下文索引：{json.dumps(prompt_context(reserved), ensure_ascii=False)}
 """
     return f"""你是单案生化{stage} worker，模型/强度为{model_identity}。
 仅执行本案本阶段，不启动CLI/批次/子代理，来源与规则只读。缺冻结pipeline时先读取本技能references/worker-standard.md、mapping-writing.md、chemistry-data.md、format.md及worker-receipt.md；不得调用旧软通规范。
@@ -121,8 +161,7 @@ def worker_prompt(reserved):
 {review_result_instruction}
 问题返回fix_required交独立revise，改后新会话review，不能自验；未做not_run。
 回执模板：{json.dumps(template, ensure_ascii=False)}
-本案上下文：{json.dumps(reserved['worker_context'], ensure_ascii=False)}
-来源快照：{json.dumps(reserved['source_snapshots'], ensure_ascii=False)}
+本案上下文索引：{json.dumps(prompt_context(reserved), ensure_ascii=False)}
 """
 
 

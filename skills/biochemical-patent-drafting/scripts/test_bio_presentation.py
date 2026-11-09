@@ -11,8 +11,61 @@ from bio_presentation import BENEFIT_INTRO,CAPTION,evidence as presentation,visi
 import inspect_docx,bio_contract,batch_tool
 
 class PresentationTests(unittest.TestCase):
+    def test_source_gaps_are_mapped_once_in_captions_references_and_split_runs(self):
+        from bio_prepare import prepare
+        from docx.shared import Cm
+        from io import BytesIO
+        from PIL import Image
+        import zipfile,hashlib
+        f=self.fixture()
+        source=Document(f.source)
+        for p in source.paragraphs:
+            if '图2' in p.text:
+                p.text=p.text.replace('图2','图3')
+        stream=BytesIO()
+        Image.new('RGB',(40,40),'gray').save(stream,'PNG')
+        stream.seek(0)
+        source.add_picture(stream,width=Cm(2))
+        source.add_paragraph('图4：末幅曲线。')
+        p=source.add_paragraph('由图')
+        p.add_run('3')
+        p.add_run('、4可知，图1至图4所示曲线在4.5MPa下测定。')
+        source.save(f.source)
+        f.e=prepare(f.source,f.root/'reprepared')
+        plan=f.plan()
+        write(f.root/'plan.json',plan)
+        out=f.root/'renumbered.docx'
+        build(f.root/'reprepared/evidence.json',f.root/'plan.json',out)
+        final=Document(out)
+        texts=[p.text for p in final.paragraphs]
+        self.assertEqual([t for t in texts if t in ('图1','图2','图3','图4')],['图1','图2','图3'])
+        self.assertIn('图3为本发明的末幅曲线。',texts)
+        self.assertIn('由图2、3可知，图1至图3所示曲线在4.5MPa下测定。',texts)
+        def media(path):
+            with zipfile.ZipFile(path) as z:
+                return sorted(hashlib.sha256(z.read(n)).digest() for n in z.namelist() if n.startswith('word/media/'))
+        self.assertEqual(media(out),media(f.source))
+        self.assertFalse(presentation(final.element,final.styles.element,'fixture')['issues'])
+        next(p for p in final.paragraphs if p.text=='图2').text='图4'
+        self.assertIn('figure_description_caption_mismatch',{i['code'] for i in presentation(final.element,final.styles.element,'fixture')['issues']})
+        plan['sections']['figures'][0],plan['sections']['figures'][2]=plan['sections']['figures'][2],plan['sections']['figures'][0]
+        write(f.root/'wrong.json',plan)
+        with self.assertRaisesRegex(ValueError,'source order'):
+            build(f.root/'reprepared/evidence.json',f.root/'wrong.json',f.root/'wrong.docx')
+
     def fixture(self):
         f=fixtures.BiochemicalBehaviorTests();f.setUp();self.addCleanup(f.doCleanups);return f
+    def test_duplicate_source_number_and_unknown_body_reference_block_delivery(self):
+        from bio_presentation import figure_sequence
+        fixture=self.fixture()
+        d=Document(fixture.build())
+        p=next(p for p in d.paragraphs if p.text.startswith('由图2'))
+        p.text='由图9可知。'
+        self.assertIn('unresolved_figure_reference',{i['code'] for i in figure_sequence(d.element)[1]})
+        for p in d.paragraphs:
+            if p.text.startswith('图2'):
+                p.text=p.text.replace('图2','图1',1)
+        self.assertIn('figure_sequence_not_contiguous',{i['code'] for i in figure_sequence(d.element,normalize=True)[1]})
     def test_bad_extra_headings_and_intro_become_one_plain_introduction_with_facts_preserved(self):
         f=self.fixture();plan=f.plan();blocks=plan['sections']['description'];idx=next(i for i,b in enumerate(blocks) if b.get('source_body_index')==next(r['body_index'] for r in f.e['body'] if r['text']=='本技术保持样品编号。'))
         support=blocks[idx]['source_body_index']

@@ -1,6 +1,6 @@
 # 生化专利撰写自动化
 
-最新版本：v1.7.2。独立技能名：`biochemical-patent-drafting`。用于从生物、化学、材料与环境类技术项目优化书撰写、独立复查并交付专利Word。
+最新版本：v1.7.3。独立技能名：`biochemical-patent-drafting`。用于从生物、化学、材料与环境类技术项目优化书撰写、独立复查并交付专利Word。
 
 [下载最新分享包](https://github.com/zhoudebao6-art/biochemical-patent-drafting/releases/latest) · [技能入口](skills/biochemical-patent-drafting/SKILL.md)
 
@@ -30,10 +30,6 @@
 
 ## 版本与验证范围
 
-表格列宽通用修复：普通文字表按当前页面有效宽度和各列完整内容分配，短样品列让出空间给长说明列，能一行放下尽量一行；保留字号、文字、数值、上下标及边框，放不下自然换行。复杂合并/富对象表保留结构并逐页复核；新增同稿列宽证据，沿用现有生成与验收链。16/8/8总并发32、独立复查、原案小文件夹同名交付保持。
+v1.7.3将CLI提示收缩为本案路径索引和必要元数据，完整prepared内容从冻结handoff按需读取，减少重复输入和模型调用。附图按说明书实际图序连续编号，并联动附图说明、图下编号、正文和结果分析引用。规则库v21，29条活动规则，16/8/8三池并发上限32。
 
-304项相关回归通过；新增短列让宽、完整数字与上下标保留、长内容自然换行、复杂表保留、宽度漂移拦截和当前证据要求等回归。合成排版样本经实际WPS渲染逐页查看；所有正文及原生上下标保留。未用用户项目书构建测试数据，未修改旧冻结批次。
-
-公开分享包保留匿名样本统计和已清洗模板，不含原始技术项目书、人工终稿或个人运行路径。runtime.json保持空配置，新电脑须按references/runtime.md探测依赖、配置环境并完成预检及小样实际渲染。
-
-源架构：[patent-drafting-automation v6.37](https://github.com/zhoudebao6-art/patent-drafting-automation/releases/tag/v6.37)。本技能独立维护，不修改原软通技能。
+验证范围包括152项生化域回归、3项定向精简与图序回归，以及规则库、公共包和隐私扫描。源架构：[patent-drafting-automation v6.37](https://github.com/zhoudebao6-art/patent-drafting-automation/releases/tag/v6.37)。本技能独立维护，不修改原软通技能。

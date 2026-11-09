@@ -4,6 +4,7 @@ These tests verify model/effort routing, frozen evidence and stage isolation.
 The tiny DOCX/render fixtures do not establish patent or visual acceptance.
 """
 import copy
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -349,6 +350,26 @@ class ModelPolicyTests(unittest.TestCase):
         self.assertEqual(job['prompt_sha256'], b.sha(folder / 'prompt.txt'))
         self.assertIn('gpt-6.1-sol/xhigh', (folder / 'prompt.txt').read_text(encoding='utf-8').lower())
         self.assertTrue((folder / 'cli-launch-intent.json').is_file())
+
+    def test_worker_prompt_uses_sealed_handoff_instead_of_repeating_prepared_payload(self):
+        reserved = {'attempt': {'directory': str(self.root / 'attempt')},
+                    'worker_context': {'title': '测试案', 'context': {'case_id': '001'},
+                                       'case_directory': str(self.root),
+                                       'writable_directory': str(self.root / 'attempt'),
+                                       'review_mode': 'review_only',
+                                       'prepared': {'pipeline': {'root': str(self.root),
+                                                                  'stage_guide': 'stage.md',
+                                                                  'math_guide': 'math.md',
+                                                                  'toolkit': 'bio_author.py',
+                                                                  'toolkit_guide': 'authoring.md',
+                                                                  'rules_active': 'rules.active.json',
+                                                                  'execution_optimization': 'lean_execution_v24',
+                                                                  'stage_read_parts': []}}},
+                    'source_snapshots': [], 'receipt_template': {}}
+        compact = cli_pool.prompt_context(reserved)
+        self.assertIn('prepared_handoff', compact)
+        self.assertNotIn('source_inspections', compact)
+        self.assertLess(len(json.dumps(compact, ensure_ascii=False)), 3000)
 
     def test_recovery_preserves_old_and_new_frozen_policy_and_next_model(self):
         for new_policy in (False, True):

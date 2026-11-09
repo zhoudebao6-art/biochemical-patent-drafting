@@ -225,7 +225,18 @@ def build(evidence_path,plan_path,output):
     claim_source={'source':e['source'],'body':[{'body_index':i,'text':text(n)} for i,n in enumerate(src.element.body) if ET.QName(n).localname!='sectPr']}
     claim_validation=validate_plan(collect(claim_paragraphs),plan,claim_source)
     from bio_spacing import forbidden
-    from bio_presentation import normalize_figure_description_endings
+    from bio_presentation import figure_sequence,normalize_figure_description_endings
+    source_figures=e.get('figures',[])
+    image_indices=[i for f in source_figures for i in f['image_body_indices']]
+    if source_figures and all(f['image_body_indices'] for f in source_figures):
+        actual=[b.get('source_body_index') for b in plan['sections']['figures']
+                if b.get('source_body_index') in image_indices or b.get('role')=='image']
+        if actual!=image_indices:
+            raise ValueError('Appendix images must follow their source order: '+str(image_indices))
+    numbers,issues=figure_sequence(dest.element,[f['number'] for f in source_figures] if source_figures else None,normalize=True)
+    if issues:
+        raise ValueError('Figure numbering requires source review: '+str(issues))
+    plan_changes.append({'kind':'source_to_final_figure_numbers','mapping':numbers})
     figure_endings=normalize_figure_description_endings(dest.element)
     if any(forbidden(c) for c in plan['title']):raise ValueError('Formal title needs source-supported no-space wording before freezing the plan')
     output.parent.mkdir(parents=True,exist_ok=True)

@@ -1,28 +1,20 @@
 {
-  "version": "1.7.2",
+  "version": "1.7.3",
   "edition": "public-share",
-  "date": "2026-10-30",
-  "rule_version": 20,
-  "file_count": 142,
-  "archive": "biochemical-patent-drafting-v1.7.2.zip",
-  "archive_sha256": "8378dc6b2bce297dfd79696aa8788e44adfb8459bb19b7d27aa50061c235d17f",
-  "source_release_zip_sha256": "009f42705c65c22859959f01d0638db6ca5899cdf8a6467857aa7942ac6cc735",
+  "date": "2026-11-09",
+  "rule_version": 21,
+  "file_count": 148,
+  "archive": "biochemical-patent-drafting-v1.7.3.zip",
+  "archive_sha256": "fe227e2637c6e0e541f000e663336c4b1e603836a079bee3f8810f008fd054f0",
   "new_machine_setup_required": true,
   "checks": {
-    "total_tests": 304,
-    "test_groups": {
-      "biochemical-tests.log": 150,
-      "integration-tests.log": 154
-    },
     "source_install_zip_identity": true,
-    "rules_policy_runtime_template_unchanged": false,
     "softtech_skill_unchanged": true,
-    "real_document_equivalence": false,
-    "validation_material": "Synthetic software fixtures only; no original project documents, human finals or chat data collected for model evaluation or training.",
-    "paid_model_calls": 0,
-    "throughput_measurement": false,
-    "public_targeted_tests": 165,
-    "public_runtime_unconfigured_and_rejected": true
+    "public_runtime_unconfigured_and_rejected": true,
+    "prompt_compaction": "sealed-handoff-path-index",
+    "figure_sequence_contract": "source-reading-order-to-consecutive-final-numbers",
+    "biochemical_domain_tests": 152,
+    "targeted_integration_tests": 3
   },
   "files": [
     {
@@ -39,15 +31,15 @@
     },
     {
       "path": "README.md",
-      "sha256": "eb48b8251d424cdba6727a3e788b3cddad540618a4f116d19cdaca4ae57a3e85"
+      "sha256": "bd5519b96acb7efd0de4955072be8c9df2a9e60b20bd57469afbc0cc768f1c17"
     },
     {
       "path": "references/architecture-provenance.json",
-      "sha256": "9f509fb2f1fa3526653c28414618d1159d8ea01ca43584dfae71ca6040f319c5"
+      "sha256": "3099fe3422ad7adce618cb8519e2e4f12af0454695ac825ddb14ac0512ee24b2"
     },
     {
       "path": "references/authoring-toolkit.md",
-      "sha256": "6b2545bac22a06b469afea0f25fdce0e3fbb7ea0c47880d67b30261703844940"
+      "sha256": "9fff00b635262fbdfad5a8444dfedbdf00b27c28d1bb7491075aa47c83c620f7"
     },
     {
       "path": "references/background-user-requirement.txt",
@@ -79,7 +71,7 @@
     },
     {
       "path": "references/efficiency.md",
-      "sha256": "5bf1e13a248ba2fc7687f7dccce096eb1cf296dd9e402ee3c78489763e14593c"
+      "sha256": "0e0e35ad7246a69410a69d7a899106c7756eebc182366c8778170ca04d037e88"
     },
     {
       "path": "references/example-format-user-requirement.txt",
@@ -103,7 +95,7 @@
     },
     {
       "path": "references/mapping-writing.md",
-      "sha256": "7b62c07819250aacb5b90fdbc31a6547ce83d0feebc85e5bed4b058a08e035c8"
+      "sha256": "68cf85e28389214e2a67546fe6638a54102856d2667caec16e2b9a2bc117a0d1"
     },
     {
       "path": "references/native-scripts-user-requirement.txt",
@@ -126,12 +118,36 @@
       "sha256": "0455d7bbded40b31e6020f3c5e5f871ec87cb6b32d59c7bc4f9392a416549809"
     },
     {
+      "path": "references/rule-backups/rules-v1-20261020T100633265851Z-645ee4e5d381449eaf1fc980cb8b5bdf.json",
+      "sha256": "16e8a9284a3fc356c60d9f4c3cc1210e48ec83cb3edea041299fc8ccd0a1c509"
+    },
+    {
+      "path": "references/rule-backups/rules-v2-20261020T102146402885Z-9d158cdfcc734c11a4af2ad9cc2bb776.json",
+      "sha256": "ece075dd17d889d0fef21a91a68a1d98584bd88799c096fec1fa3b913ef38d31"
+    },
+    {
+      "path": "references/rule-backups/rules-v3-20261021T022405016983Z-02b3ba9055e346f687ef17fb75d26aa8.json",
+      "sha256": "745e37e6737db4a0ef0f00c87bbd656e5262b21135c0451e8b59b36785f6bcaf"
+    },
+    {
+      "path": "references/rule-backups/rules-v4-20261021T040629942071Z-44ca8118ba3c47fc89310d8763820ca4.json",
+      "sha256": "e4dd44a56378f6f2b0a71a0017a23804db58a3cfedeb2d97d6f6d154ffa8eec7"
+    },
+    {
+      "path": "references/rule-backups/rules-v5-20261021T041505234964Z-b41f572143e942c49df3a7467ccfbfe2.json",
+      "sha256": "182b9e6f1dd0cbbc08bfd44ac4ad00cce0d362eb813889ce35557da942dd7e56"
+    },
+    {
+      "path": "references/rule-backups/rules-v6-20261021T060138716398Z-23185226837a49079de4c7ebf9cdd6c0.json",
+      "sha256": "4b3ab33d22f48856d747831a67c55315e56595e199d99f2d24ee6f8566342623"
+    },
+    {
       "path": "references/rule-maintenance.md",
       "sha256": "7d6799d5c4f3f1bc823662a4252789436dcf4cfff14ae4274b5e63ad7b414850"
     },
     {
       "path": "references/rules.json",
-      "sha256": "84d25df81489dc16dd32ef5956cb525f9ebd077a65a043f751786ff2d4251f32"
+      "sha256": "8aa9cebe83db2c2e9b90701e6189b631bc39e4379513d18234a3b594ab56655e"
     },
     {
       "path": "references/runtime.json",
@@ -167,7 +183,7 @@
     },
     {
       "path": "references/worker-standard-coverage.json",
-      "sha256": "4531752a4aabf034f2c2c8fc0071092da61197a4daf7a11bed487d04f9394837"
+      "sha256": "2d2ef471e5703b10d8fe76bf9fabf81ad01471593701da7cb6b129416eebcfcf"
     },
     {
       "path": "references/worker-standard.md",
@@ -187,7 +203,7 @@
     },
     {
       "path": "scripts/bio_author.py",
-      "sha256": "d8ab9da6a878eed43ff8344707f80fde71deb26955c1d2f5e99f8ecd4214782a"
+      "sha256": "98fadf919e50035b1cb764f7f71ca406a317b9a2ad702e5a4afec6017cbbc4ad"
     },
     {
       "path": "scripts/bio_background.py",
@@ -207,7 +223,7 @@
     },
     {
       "path": "scripts/bio_contract.py",
-      "sha256": "ba0d7c3f35b870437b67782708f894c8fc80620a59b128da2b8abbba6694f703"
+      "sha256": "e64cac195a9ba39b31a4ec56a6b4c14b6194cbd6ec5fabcdc5c92429f8e0c2b4"
     },
     {
       "path": "scripts/bio_inspection.py",
@@ -227,7 +243,7 @@
     },
     {
       "path": "scripts/bio_presentation.py",
-      "sha256": "873d86f067cc03be6c5fd30fd1fe0ca1bfd8245e6145cd206a539588fda2e210"
+      "sha256": "85facde4c3ec8650792cda2fcebcc879fc890fd2e7d722fec81fb958ccf18434"
     },
     {
       "path": "scripts/bio_scripts.py",
@@ -247,7 +263,7 @@
     },
     {
       "path": "scripts/cli_pool.py",
-      "sha256": "b1398ee64986474be7f85b0616978f83734006308a6184920f85eb899d67d9d7"
+      "sha256": "12bace703388573affdaa042d9de7cd16f5643d1f86c668d5720c09ba990a3e2"
     },
     {
       "path": "scripts/evidence_query.py",
@@ -375,7 +391,7 @@
     },
     {
       "path": "scripts/test_bio_presentation.py",
-      "sha256": "8e9bf39fb369f7df2bb9063bed5fa964844263577fecf9caab384253c373e129"
+      "sha256": "0706739ff05bf6967fb81069c7a4bc014d724fdad1bd26bc531756d601b73f89"
     },
     {
       "path": "scripts/test_bio_scripts.py",
@@ -491,7 +507,7 @@
     },
     {
       "path": "scripts/test_model_policy.py",
-      "sha256": "2f2d5a467b15e5bce556d2b8f186ca68e29c19d3f1808eb640438e03ca3ca2d2"
+      "sha256": "025a248aa9634c99649928c6b873d5e4eb11365b587ac8e36b174aaacde7a0d4"
     },
     {
       "path": "scripts/test_nonblocking_pools.py",
@@ -559,7 +575,7 @@
     },
     {
       "path": "scripts/test_three_stage_pools.py",
-      "sha256": "0b14cb34fadf0990115be4daad977fe8fda83748b2d293b0d037dbcfeeaacd1c"
+      "sha256": "8d9fd32e4a9e2e53409042604d79d1b06cb5cb468ef604c5ab4322a24ef93e11"
     },
     {
       "path": "scripts/test_title_identity.py",
@@ -591,7 +607,7 @@
     },
     {
       "path": "SKILL.md",
-      "sha256": "b12ec9af44211f050275f0f96e057cd8d90eacf2f66ed2f7cbe99a0d75e852e2"
+      "sha256": "389a813765545ce9f88781cc2119441cdd411f1e2445dab2f29b772087fc1b2e"
     }
   ]
 }

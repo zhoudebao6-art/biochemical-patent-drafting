@@ -89,6 +89,95 @@ def figure_description_nodes(root):
     """Compatibility view containing only located list paragraphs."""
     for i,p,_ in figure_description_entries(root):yield i,p
 
+
+FIGURE_REF = re.compile(r'图\s*([0-9０-９]+)')
+FIGURE_SHORT = re.compile(r'\s*(?:、|及|和|与|至|到|[-~～—])\s*([0-9０-９]+)')
+
+
+def figure_numbers(value):
+    """Number spans in explicit references and abbreviated lists/ranges."""
+    for first in FIGURE_REF.finditer(value):
+        yield first
+        end = first.end()
+        while True:
+            following = FIGURE_SHORT.match(value, end)
+            if following is None:
+                break
+            # A following quantity (图3和4.5MPa) is not a second figure.
+            tail = value[following.end():].lstrip()
+            if tail and not re.match(r'所示|所列|可知|可见|所对应|分别|共同|均|表明|显示|中|的|[、，。；：）)及和与至到~～—-]', tail):
+                break
+            yield following
+            end = following.end()
+
+
+def figure_sequence(root, source_numbers=None, normalize=False, entries=None):
+    """Use the description list and physical image/caption pairs, in reading order."""
+    body = root.find('w:body', NS)
+    boundaries = [i for i,n in enumerate(body) if n.find('w:pPr/w:sectPr', NS) is not None]
+    if entries is None:
+        entries = figure_description_entries(root)
+    descriptions = [int(re.match(r'图(\d+)',compact(visible(p)))[1]) for _,p,_ in entries]
+    issues = []
+    captions = []
+    if len(boundaries) == 4:
+        pending = False
+        for node in list(body)[boundaries[-1]+1:]:
+            picture = any(item.tag in (qn('drawing'), qn('pict'), qn('object')) for item in node.iter())
+            value = visible(node).strip()
+            if picture:
+                pending = True
+            if not value:
+                continue
+            caption = FIGURE_REF.fullmatch(value)
+            if not caption or not pending:
+                issues.append({'code':'unpaired_appendix_caption','text':value[:60]})
+                continue
+            captions.append(int(caption[1]))
+            pending = False
+        if pending:
+            issues.append({'code':'missing_appendix_caption'})
+        if descriptions != captions:
+            issues.append({'code':'figure_description_caption_mismatch','captions':captions})
+    if source_numbers is not None and descriptions != source_numbers:
+        issues.append({'code':'figure_source_order_mismatch','source':source_numbers})
+    expected = list(range(1,len(descriptions)+1))
+    mapping = dict(zip(descriptions,expected))
+    if len(mapping) != len(descriptions) or (not normalize and descriptions != expected):
+        issues.append({'code':'figure_sequence_not_contiguous','numbers':descriptions})
+    if issues or len(boundaries) != 4:
+        return mapping, issues
+    for paragraph in body.iter(qn('p')):
+        # Limit span edits to native text of this paragraph, excluding nested text boxes.
+        nodes = list(paragraph.iter(qn('t')))
+        value = ''.join(n.text or '' for n in nodes)
+        edits = []
+        if normalize and descriptions != sorted(descriptions) and re.search(r'图\s*\d+\s*(?:至|到|[-~～—])\s*(?:图\s*)?\d+',value):
+            issues.append({'code':'figure_range_requires_explicit_source_members','text':value[:80]})
+            continue
+        for ref in figure_numbers(value):
+            old = int(ref[1])
+            if old not in mapping:
+                issues.append({'code':'unresolved_figure_reference','number':old,'text':value[:80]})
+            elif normalize and str(mapping[old]) != ref[1]:
+                edits.append((*ref.span(1),str(mapping[old])))
+        if not edits:
+            continue
+        if (any(n.tag in (qn('fldSimple'),qn('fldChar'),qn('instrText'),qn('drawing'),qn('pict'))
+                for n in paragraph.iter()) or value != visible(paragraph)):
+            issues.append({'code':'figure_field_requires_review','text':value[:80]})
+            continue
+        # Reverse original offsets, so overlapping old/new numbers cannot cascade.
+        for start,end,replacement in reversed(edits):
+            pos = 0
+            for node in nodes:
+                s = node.text or ''
+                stop = pos + len(s)
+                if pos < end and stop > start:
+                    node.text = s[:max(0,start-pos)] + (replacement if pos <= start else '') + s[max(0,end-pos):]
+                pos = stop
+    return mapping, issues
+
 def normalize_figure_description_endings(root):
     """Change only the list-entry terminal mark, never flatten rich text/math."""
     from lxml import etree as ET
@@ -280,8 +369,11 @@ def evidence(root,styles,artifact_sha):
             if re.fullmatch(r'Heading\d+',sid,re.I) or outline is not None and int(outline.get(qn('val'),'9'))<9:issues.append({'body_index':i,'code':'extra_outline_heading','text':node_text(n)[:90]})
             if value in ('制备工艺','制备工艺：') or CAPTION.fullmatch(value):labels.append({'body_index':i,'text':node_text(n),'format':'plain'})
     if len(intro)>1:issues.append({'code':'duplicate_benefit_introductions','body_indices':intro})
+    entries=figure_description_entries(root)
+    _,sequence_issues=figure_sequence(root,entries=entries)
+    issues.extend(sequence_issues)
     descriptions=[]
-    for i,p,ending in figure_description_entries(root):
+    for i,p,ending in entries:
         value=node_text(p).rstrip();descriptions.append({'body_index':i,'text':value,'expected_ending':ending})
         if not value.endswith(ending):
             issues.append({'code':'figure_description_terminal_not_full_stop' if ending=='。' else 'figure_description_terminal_not_semicolon',
@@ -361,4 +453,4 @@ def evidence(root,styles,artifact_sha):
     examples=example_entries([{'text':node_text(n),'kind':'p' if n.tag==qn('p') else 'tbl','location':i} for i,n in enumerate(nodes)])
     for row in examples:
         if row['split']:issues.append({'code':'example_introduction_split','key':row['key']})
-    return {'schema_version':1,'artifact_sha256':artifact_sha,'complete':True,'examples_contract_version':1,'prose_flow_contract_version':1,'prose_flow_checked_body_indices':flow_checked,'examples':examples,'tables':table_count,'captions':captions,'benefit_intro_body_indices':intro,'plain_labels':labels,'figure_descriptions':descriptions,'issues':issues,'scope':'Source caption meanings, preserved technical facts, allowed headings and actual page pairing require independent semantic/visual review; screenshot annotations are not document elements'}
+    return {'schema_version':1,'artifact_sha256':artifact_sha,'complete':True,'figure_numbering_version':1,'examples_contract_version':1,'prose_flow_contract_version':1,'prose_flow_checked_body_indices':flow_checked,'examples':examples,'tables':table_count,'captions':captions,'benefit_intro_body_indices':intro,'plain_labels':labels,'figure_descriptions':descriptions,'issues':issues,'scope':'Source caption meanings, preserved technical facts, allowed headings and actual page pairing require independent semantic/visual review; screenshot annotations are not document elements'}

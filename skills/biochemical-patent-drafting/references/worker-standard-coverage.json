@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "files": {
-    "mapping-writing.md": "7b62c07819250aacb5b90fdbc31a6547ce83d0feebc85e5bed4b058a08e035c8",
+    "mapping-writing.md": "68cf85e28389214e2a67546fe6638a54102856d2667caec16e2b9a2bc117a0d1",
     "chemistry-data.md": "e9b2cb39421a108db5f74090b1798baad270614c321e55c50a6588e6a3059311",
-    "format.md": "e69cb5dc93c87f66b33715b3677757ceb54ba03ff48e0227d594ac70cb5883e8",
+    "format.md": "cbde8fcbe4d5816dd83d27e237b5d33ba83d27dcf7ec67dca33de5eb83a16626",
     "plan-schema.md": "f77c647c1b28d0f0844270ed10e6e387810b04de7de3e4f83a989128faae6b95",
     "worker-standard.md": "335a99295f5fdc68d077aebaf3aafe40d38c6157a4ab21858b5d36fd53b491e5",
-    "claims-patterns.md": "5d9019d6bcd1f291f201705197eee95b6492cb5689478c2d4d3ba70c5e355cbd"
+    "claims-patterns.md": "b202265d56df5804355c3ffd17dbbbbd25ea1a5b8574e31378c84bae359d7f3c"
   },
-  "reviewed_scope": "Rules v20: BIO-22 adds content-aware column widths, unchanged font/content and current-SHA width evidence; all domain reference inventories retained. Stage packets include the updated rule and the authoring-toolkit reference."
+  "reviewed_scope": "Rules v21: BIO-12 maps original figures to final consecutive numbers in source reading order."
 }
